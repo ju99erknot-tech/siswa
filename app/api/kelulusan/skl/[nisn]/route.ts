@@ -1,0 +1,62 @@
+import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+
+const getSupabaseAdmin = () =>
+  createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<{ nisn: string }> }
+) {
+  try {
+    const { nisn } = await params;
+    if (!nisn) {
+      return NextResponse.json({ error: "NISN wajib" }, { status: 400 });
+    }
+
+    const supabase = getSupabaseAdmin();
+
+    const { data: pengaturan } = await supabase
+      .from("pengaturan")
+      .select("*")
+      .limit(1)
+      .single();
+
+    if (!pengaturan?.portal_kelulusan_aktif) {
+      return NextResponse.json(
+        { error: "Portal belum aktif" },
+        { status: 403 }
+      );
+    }
+
+    const { data: siswa } = await supabase
+      .from("siswa")
+      .select("id, nama, nisn, nis, jk, kelas, tempat_lahir, tanggal_lahir, nama_ayah, nama_ibu, foto_url, status_kelulusan, no_peserta_un")
+      .eq("nisn", nisn)
+      .single();
+
+    if (!siswa || siswa.status_kelulusan !== "LULUS") {
+      return NextResponse.json(
+        { error: "Data tidak ditemukan atau belum dinyatakan lulus" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      siswa,
+      nama_sekolah: pengaturan.nama_sekolah,
+      nama_kepsek: pengaturan.nama_kepsek,
+      nip_kepsek: pengaturan.nip_kepsek,
+      npsn: pengaturan.npsn,
+      alamat_sekolah: pengaturan.alamat_sekolah,
+      tahun_ajaran: pengaturan.tahun_ajaran,
+      logo_url: pengaturan.logo_url,
+    });
+  } catch {
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
+}

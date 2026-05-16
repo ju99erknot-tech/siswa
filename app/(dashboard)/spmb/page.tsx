@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -15,6 +15,7 @@ import {
   FileCheck,
   RefreshCw,
   MessageSquare,
+  ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useSpmb } from "@/hooks/useSpmb";
@@ -158,6 +159,12 @@ export default function SpmbDashboard() {
         subtitle={`${SCHOOL.nama} — Verifikasi berkas persiapan lulusan Kelas 6`}
         gradient="linear-gradient(135deg, #051a1a 0%, #0c0820 50%, #050d1e 100%)"
         glowColor="rgba(16,185,129,0.28)"
+        action={
+          <a href="/portal/spmb" target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all">
+            <ExternalLink size={14} /> Buka Portal
+          </a>
+        }
       />
 
       <StatCards

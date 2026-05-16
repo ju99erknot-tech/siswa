@@ -157,6 +157,7 @@ const NAV_SECTIONS: NavSection[] = [
           { label: "Leaderboard", href: "/leaderboard", icon: Crown },
           { label: "WhatsApp Blast", href: "/whatsapp", icon: MessageSquare },
           { label: "Digital Wallet", href: "/wallet", icon: Wallet },
+          { label: "Kelulusan", href: "/kelulusan", icon: GraduationCap },
           { label: "Verifikasi SPMB", href: "/spmb", icon: ClipboardCheck },
         ],
       },
