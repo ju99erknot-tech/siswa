@@ -95,7 +95,7 @@ export default function ESklPage() {
 
       {/* Certificate Card */}
       <motion.div ref={certRef} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}
-        className="w-full max-w-lg relative z-10 rounded-[2rem] overflow-hidden"
+        className="w-full max-w-lg relative z-10 rounded-[2rem] overflow-hidden print:!bg-white print:!border-gray-300 print:shadow-none print:!bg-none"
         style={{ background: "linear-gradient(160deg, rgba(20,15,35,0.95) 0%, rgba(10,10,25,0.98) 100%)", border: "1px solid rgba(212,168,67,0.2)", boxShadow: "0 30px 80px rgba(0,0,0,0.6), 0 0 60px rgba(212,168,67,0.08)" }}>
 
         {/* Gold accent top border */}
@@ -115,8 +115,8 @@ export default function ESklPage() {
               </div>
             )}
             <div className="text-left">
-              <p className="text-xs font-black text-amber-400 uppercase tracking-wider">{data.nama_sekolah}</p>
-              <p className="text-[9px] text-white/30">NPSN: {data.npsn || "-"}</p>
+              <p className="text-xs font-black text-amber-400 print:text-black uppercase tracking-wider">{data.nama_sekolah}</p>
+              <p className="text-[9px] text-white/30 print:text-gray-500">NPSN: {data.npsn || "-"}</p>
             </div>
           </div>
 
@@ -126,10 +126,10 @@ export default function ESklPage() {
             <Award size={16} className="text-amber-400" />
             <div className="h-px flex-1 bg-gradient-to-l from-transparent to-amber-500/30" />
           </div>
-          <h1 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 uppercase tracking-wider">
+          <h1 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 print:from-black print:to-black uppercase tracking-wider">
             Surat Keterangan Lulus
           </h1>
-          <p className="text-[10px] text-white/30 mt-1 tracking-widest uppercase">E-SKL Digital • TP {data.tahun_ajaran}</p>
+          <p className="text-[10px] text-white/30 print:text-gray-500 mt-1 tracking-widest uppercase">E-SKL Digital • TP {data.tahun_ajaran}</p>
         </div>
 
         {/* Divider */}
@@ -147,8 +147,8 @@ export default function ESklPage() {
               )}
             </div>
             <div className="min-w-0">
-              <h2 className="text-lg font-black text-white truncate uppercase">{siswa.nama}</h2>
-              <p className="text-xs text-white/40">NISN: <span className="text-amber-400/80 font-mono">{siswa.nisn}</span></p>
+              <h2 className="text-lg font-black text-white print:text-black truncate uppercase">{siswa.nama}</h2>
+              <p className="text-xs text-white/40 print:text-gray-600">NISN: <span className="text-amber-400/80 print:text-black font-mono">{siswa.nisn}</span></p>
             </div>
           </div>
 
@@ -160,25 +160,25 @@ export default function ESklPage() {
               { label: "Jenis Kelamin", value: siswa.jk === "P" ? "Perempuan" : "Laki-laki" },
               { label: "Orang Tua/Wali", value: siswa.nama_ayah || siswa.nama_ibu || "-" },
             ].map(item => (
-              <div key={item.label} className="p-3 rounded-xl" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)" }}>
-                <p className="text-[8px] font-bold text-white/25 uppercase tracking-wider mb-1">{item.label}</p>
-                <p className="text-xs font-bold text-white/70 leading-snug">{item.value}</p>
+              <div key={item.label} className="p-3 rounded-xl print:!bg-white print:border-gray-300 print:!border" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)" }}>
+                <p className="text-[8px] font-bold text-white/25 print:text-gray-500 uppercase tracking-wider mb-1">{item.label}</p>
+                <p className="text-xs font-bold text-white/70 print:text-black leading-snug">{item.value}</p>
               </div>
             ))}
           </div>
 
           {/* LULUS Status */}
-          <div className="relative p-5 rounded-2xl text-center overflow-hidden" style={{ background: "linear-gradient(135deg, rgba(212,168,67,0.08), rgba(16,185,129,0.05))", border: "1px solid rgba(212,168,67,0.15)" }}>
-            <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-32 h-32 bg-amber-500/10 rounded-full blur-[40px] pointer-events-none" />
+          <div className="relative p-5 rounded-2xl text-center overflow-hidden print:!bg-white print:border-black print:!border-2" style={{ background: "linear-gradient(135deg, rgba(212,168,67,0.08), rgba(16,185,129,0.05))", border: "1px solid rgba(212,168,67,0.15)" }}>
+            <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-32 h-32 bg-amber-500/10 rounded-full blur-[40px] pointer-events-none print:hidden" />
             <div className="flex items-center justify-center gap-2 mb-2 relative z-10">
-              <Star size={14} className="text-amber-400 fill-amber-400" />
-              <span className="text-[10px] font-black text-amber-400 uppercase tracking-[0.3em]">Dinyatakan</span>
-              <Star size={14} className="text-amber-400 fill-amber-400" />
+              <Star size={14} className="text-amber-400 print:text-black print:fill-black fill-amber-400" />
+              <span className="text-[10px] font-black text-amber-400 print:text-black uppercase tracking-[0.3em]">Dinyatakan</span>
+              <Star size={14} className="text-amber-400 print:text-black print:fill-black fill-amber-400" />
             </div>
-            <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 relative z-10 tracking-widest">
+            <h2 className="text-3xl font-black text-transparent print:text-black bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 print:from-black print:to-black relative z-10 tracking-widest">
               L U L U S
             </h2>
-            <p className="text-[10px] text-white/30 mt-2 relative z-10">
+            <p className="text-[10px] text-white/30 print:text-black mt-2 relative z-10">
               Berdasarkan hasil Asesmen Sumatif Akhir Jenjang dan Rapat Dewan Guru
             </p>
           </div>
@@ -186,22 +186,22 @@ export default function ESklPage() {
           {/* Kepsek + QR */}
           <div className="flex items-end justify-between gap-4 pt-2">
             <div className="text-left">
-              <p className="text-[9px] text-white/25 uppercase tracking-widest mb-1">Kepala Sekolah</p>
-              <p className="text-sm font-black text-white/80">{data.nama_kepsek}</p>
-              <p className="text-[10px] text-white/30 font-mono">NIP. {data.nip_kepsek}</p>
+              <p className="text-[9px] text-white/25 print:text-gray-500 uppercase tracking-widest mb-1">Kepala Sekolah</p>
+              <p className="text-sm font-black text-white/80 print:text-black">{data.nama_kepsek}</p>
+              <p className="text-[10px] text-white/30 print:text-gray-600 font-mono">NIP. {data.nip_kepsek}</p>
             </div>
             <div className="flex flex-col items-center gap-1">
-              <div className="p-2 rounded-xl bg-white">
+              <div className="p-2 rounded-xl bg-white print:p-0 print:border-none border border-white/10">
                 <QRCode value={verifyUrl} size={72} level="M" />
               </div>
-              <p className="text-[7px] text-white/20 text-center max-w-[80px] leading-tight">Scan untuk verifikasi</p>
+              <p className="text-[7px] text-white/20 print:text-gray-500 text-center max-w-[80px] leading-tight">Scan untuk verifikasi</p>
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="px-8 py-4" style={{ background: "rgba(0,0,0,0.2)", borderTop: "1px solid rgba(255,255,255,0.04)" }}>
-          <p className="text-[9px] text-white/20 text-center leading-relaxed">
+        <div className="px-8 py-4 print:!bg-white print:border-t-gray-300" style={{ background: "rgba(0,0,0,0.2)", borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+          <p className="text-[9px] text-white/20 print:text-gray-500 text-center leading-relaxed">
             Dokumen E-SKL ini diterbitkan secara digital oleh {data.nama_sekolah} dan dapat diverifikasi melalui QR Code di atas.
             SKL ini bersifat sementara sampai Ijazah asli diterbitkan.
           </p>
