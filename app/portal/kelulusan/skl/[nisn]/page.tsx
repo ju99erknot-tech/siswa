@@ -81,8 +81,8 @@ export default function ESklPage() {
     : "-";
 
   return (
-    <div className="fixed inset-0 w-full h-[100dvh] overflow-y-auto overflow-x-hidden bg-[#050812]">
-      <div className="min-h-full w-full relative flex flex-col items-center p-4 pt-8 pb-24" style={{ background: "linear-gradient(135deg, #050812 0%, #0a1128 50%, #050812 100%)" }}>
+    <div className="fixed inset-0 w-full overflow-y-auto overflow-x-hidden" style={{ background: "linear-gradient(135deg, #050812 0%, #0a1128 50%, #050812 100%)" }}>
+      <div className="min-h-full w-full relative flex flex-col items-center p-4 pt-8 pb-24">
         {/* Orbs */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full blur-[120px] pointer-events-none" style={{ background: "radial-gradient(circle, rgba(212,168,67,0.15) 0%, transparent 70%)" }} />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full blur-[120px] pointer-events-none" style={{ background: "radial-gradient(circle, rgba(16,185,129,0.1) 0%, transparent 70%)" }} />
