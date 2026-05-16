@@ -198,7 +198,7 @@ export default function PortalKelulusan() {
   return (
     <>
       {/* ── MAIN SCREEN ── */}
-      <div className="min-h-screen w-full relative flex flex-col items-center p-4 py-10 selection:bg-amber-500/30" style={{ background: "linear-gradient(135deg, #050812 0%, #0a1128 50%, #050812 100%)" }}>
+      <div className="min-h-screen w-full relative flex flex-col items-center p-4 py-6 selection:bg-amber-500/30 overflow-x-hidden" style={{ background: "linear-gradient(135deg, #050812 0%, #0a1128 50%, #050812 100%)" }}>
         {/* Decorative Orbs */}
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full blur-[120px] pointer-events-none" style={{ background: "radial-gradient(circle, rgba(212,168,67,0.12) 0%, transparent 70%)" }} />
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full blur-[120px] pointer-events-none" style={{ background: "radial-gradient(circle, rgba(16,185,129,0.12) 0%, transparent 70%)" }} />
