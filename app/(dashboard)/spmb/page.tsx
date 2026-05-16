@@ -99,6 +99,8 @@ export default function SpmbDashboard() {
     "Belum Diisi": "text-white/40 bg-white/5 border-white/10",
     "Menunggu Verifikasi":
       "text-yellow-400 bg-yellow-500/10 border-yellow-500/20",
+    "Perlu Perbaikan":
+      "text-red-400 bg-red-500/10 border-red-500/20",
     "Valid & Lengkap":
       "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
     Didaftarkan: "text-blue-400 bg-blue-500/10 border-blue-500/20",
@@ -234,6 +236,7 @@ export default function SpmbDashboard() {
             <option value="Semua">Semua Status</option>
             <option value="Belum Diisi">Belum Diisi</option>
             <option value="Menunggu Verifikasi">Menunggu Verif</option>
+            <option value="Perlu Perbaikan">Perlu Perbaikan</option>
             <option value="Valid & Lengkap">Valid & Lengkap</option>
             <option value="Didaftarkan">Didaftarkan</option>
             <option value="Selesai">Selesai</option>
@@ -558,9 +561,8 @@ export default function SpmbDashboard() {
                         )}
                       </div>
 
-                      {/* Dokumen Pendukung (Prestasi/Afirmasi/Mutasi) */}
-                      {verifikasiData.jalur_pendaftaran &&
-                        verifikasiData.jalur_pendaftaran !== "Zonasi" && (
+                      {/* Dokumen Pendukung (Semua Jalur) */}
+                      {verifikasiData.jalur_pendaftaran && (
                           <div
                             onClick={() =>
                               verifikasiData.url_dokumen_pendukung &&
@@ -574,15 +576,15 @@ export default function SpmbDashboard() {
                               className={`w-8 h-8 mb-2 ${verifikasiData.url_dokumen_pendukung ? "text-yellow-400" : "text-white/10"}`}
                             />
                             <span className="text-xs font-bold text-white/80">
-                              Dokumen {verifikasiData.jalur_pendaftaran}
+                              {verifikasiData.jalur_pendaftaran === "Zonasi" ? "Foto Depan Rumah" : `Dokumen ${verifikasiData.jalur_pendaftaran}`}
                             </span>
                             {verifikasiData.url_dokumen_pendukung ? (
                               <span className="text-[10px] text-yellow-400/80 mt-1">
-                                Sertifikat/KIP/Surat Pindah - Klik untuk lihat
+                                {verifikasiData.jalur_pendaftaran === "Zonasi" ? "Foto Geotagging" : "Sertifikat/KIP/Surat Pindah"} - Klik untuk lihat
                               </span>
                             ) : (
                               <span className="text-[10px] text-red-400/80 mt-1">
-                                Wajib upload dokumen pendukung!
+                                Belum diupload
                               </span>
                             )}
                           </div>
@@ -593,7 +595,7 @@ export default function SpmbDashboard() {
               </div>
 
               {/* Action Buttons */}
-              <div className="p-4 border-t border-white/5 bg-black/20 flex justify-end gap-3">
+              <div className="p-4 border-t border-white/5 bg-black/20 flex flex-wrap justify-end gap-3">
                 <button
                   onClick={() => handleUpdateStatus("Menunggu Verifikasi")}
                   disabled={saving}
@@ -602,7 +604,7 @@ export default function SpmbDashboard() {
                   Kembalikan ke Menunggu
                 </button>
                 <button
-                  onClick={() => handleUpdateStatus("Belum Diisi")}
+                  onClick={() => handleUpdateStatus("Perlu Perbaikan")}
                   disabled={saving}
                   className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-red-400 border border-red-500/20 hover:bg-red-500/10 transition-all"
                 >
@@ -611,10 +613,22 @@ export default function SpmbDashboard() {
                   ) : (
                     <XCircle size={14} />
                   )}
-                  Tolak (Suruh Perbaiki)
+                  Perlu Perbaikan
                 </button>
                 <button
                   onClick={() => handleUpdateStatus("Valid & Lengkap")}
+                  disabled={saving}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/10 transition-all"
+                >
+                  {saving ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <CheckCircle size={14} />
+                  )}
+                  Valid & Lengkap
+                </button>
+                <button
+                  onClick={() => handleUpdateStatus("Didaftarkan")}
                   disabled={saving}
                   className="flex items-center gap-2 px-6 py-2 rounded-xl text-xs font-bold text-white shadow-lg transition-all"
                   style={{
@@ -626,7 +640,7 @@ export default function SpmbDashboard() {
                   ) : (
                     <CheckCircle size={14} />
                   )}
-                  Setujui & Validasi
+                  Resmi Didaftarkan
                 </button>
               </div>
             </motion.div>
