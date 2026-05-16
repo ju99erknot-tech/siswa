@@ -612,30 +612,108 @@ export default function PortalSpmb() {
                     <span className="text-sm font-bold text-white bg-white/5 px-3 py-1 rounded-lg">{dataSiswa?.jk === 'P' ? 'Perempuan' : 'Laki-laki'}</span>
                   </div>
 
-                  {/* Status Badge */}
-                  <div className={`mt-6 px-4 py-5 rounded-2xl border flex flex-col items-center text-center gap-2 font-bold w-full transition-all ${
-                    isLocked 
-                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 shadow-[0_0_30px_rgba(16,185,129,0.15)]' 
-                      : dataSpmb?.status === "Berkas Ditolak" || dataSpmb?.status === "Perlu Perbaikan"
-                        ? 'bg-red-500/10 border-red-500/30 text-red-400 shadow-[0_0_30px_rgba(239,68,68,0.15)]'
-                        : 'bg-rose-500/10 border-rose-500/30 text-rose-400 shadow-[0_0_30px_rgba(244,63,94,0.15)]'
-                  }`}>
-                    {isLocked ? (
-                       <CheckCircle size={36} className="text-emerald-400 mb-1 drop-shadow-[0_0_15px_rgba(16,185,129,0.5)]" />
-                    ) : (
-                       <AlertCircle size={36} className={`mb-1 drop-shadow-[0_0_15px_rgba(244,63,94,0.5)] ${dataSpmb?.status === "Berkas Ditolak" ? 'text-red-400' : 'text-rose-400'}`} />
-                    )}
-                    <div>
-                      <div className="text-[10px] uppercase tracking-widest mb-1 opacity-70">Status Pendaftaran</div>
-                      <div className="text-lg">{dataSpmb?.status || "Belum Mengisi Formulir"}</div>
-                      {!isLocked && dataSpmb?.catatan_guru && (
-                        <div className="text-xs mt-3 font-normal opacity-80 border-t border-current/20 pt-3 leading-relaxed">
-                          <span className="font-bold block mb-1">Catatan Guru:</span>
-                          {dataSpmb.catatan_guru}
+                  {/* ⏳ Status Tracker (Resi Kurir Style) */}
+                  {(() => {
+                    const statusSteps = [
+                      { key: "submitted", label: "Berkas Disubmit", desc: "Berkas berhasil dikirim" },
+                      { key: "verifying", label: "Sedang Diverifikasi", desc: "Dicek oleh panitia SPMB" },
+                      { key: "valid", label: "Valid & Lengkap", desc: "Semua berkas sudah sesuai" },
+                      { key: "registered", label: "Resmi Didaftarkan", desc: "Terdaftar di SMP Tujuan" },
+                    ];
+
+                    const currentStatus = dataSpmb?.status || "";
+                    const isRejected = currentStatus === "Berkas Ditolak" || currentStatus === "Perlu Perbaikan";
+                    
+                    let activeIndex = -1;
+                    if (!currentStatus || currentStatus === "Belum Mengisi") activeIndex = -1;
+                    else if (currentStatus === "Menunggu Verifikasi") activeIndex = 0;
+                    else if (currentStatus === "Sedang Diverifikasi") activeIndex = 1;
+                    else if (currentStatus === "Valid & Lengkap") activeIndex = 2;
+                    else if (currentStatus === "Didaftarkan" || currentStatus === "Selesai") activeIndex = 3;
+                    else if (isRejected) activeIndex = 0; // show at step 1 but with error styling
+
+                    return (
+                      <div className="mt-6 w-full">
+                        {/* Header */}
+                        <div className="flex items-center gap-2 mb-4">
+                          <div className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Status Pendaftaran</div>
+                          {isRejected && (
+                            <span className="px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 text-[9px] font-bold uppercase tracking-wider animate-pulse">Perlu Perbaikan</span>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  </div>
+
+                        {/* Timeline Steps */}
+                        <div className="space-y-0">
+                          {statusSteps.map((step, i) => {
+                            const isCompleted = i < activeIndex || (i === activeIndex && (currentStatus === "Didaftarkan" || currentStatus === "Selesai" || currentStatus === "Valid & Lengkap"));
+                            const isActive = i === activeIndex && !isCompleted;
+                            const isPending = i > activeIndex;
+                            const isErrorStep = isRejected && i === 0;
+
+                            return (
+                              <div key={step.key} className="flex items-stretch gap-3">
+                                {/* Dot + Line */}
+                                <div className="flex flex-col items-center w-6 shrink-0">
+                                  {/* Dot */}
+                                  <div className={`relative w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-all duration-500 ${
+                                    isErrorStep
+                                      ? 'bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.6)]'
+                                      : isCompleted
+                                        ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.6)]'
+                                        : isActive
+                                          ? 'bg-cyan-500 shadow-[0_0_12px_rgba(6,182,212,0.6)]'
+                                          : 'bg-white/10 border border-white/10'
+                                  }`}>
+                                    {isErrorStep ? (
+                                      <X size={10} className="text-white" />
+                                    ) : isCompleted ? (
+                                      <Check size={10} className="text-white" />
+                                    ) : isActive ? (
+                                      <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                                    ) : null}
+                                    {isActive && !isErrorStep && (
+                                      <div className="absolute inset-0 rounded-full bg-cyan-500/40 animate-ping" />
+                                    )}
+                                  </div>
+                                  {/* Connector Line */}
+                                  {i < statusSteps.length - 1 && (
+                                    <div className={`w-0.5 flex-1 min-h-[20px] transition-all duration-500 ${
+                                      isCompleted ? 'bg-emerald-500/50' : 'bg-white/5'
+                                    }`} />
+                                  )}
+                                </div>
+                                {/* Text */}
+                                <div className={`pb-5 ${i === statusSteps.length - 1 ? 'pb-0' : ''}`}>
+                                  <p className={`text-xs font-bold transition-colors ${
+                                    isErrorStep ? 'text-red-400' : isCompleted ? 'text-emerald-400' : isActive ? 'text-cyan-400' : 'text-white/20'
+                                  }`}>
+                                    {isErrorStep ? (currentStatus) : step.label}
+                                  </p>
+                                  <p className={`text-[10px] leading-snug mt-0.5 ${
+                                    isErrorStep ? 'text-red-400/60' : isCompleted || isActive ? 'text-white/40' : 'text-white/15'
+                                  }`}>
+                                    {isErrorStep ? "Ada berkas yang perlu diperbaiki" : step.desc}
+                                  </p>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* Catatan Guru (if rejected/perbaikan) */}
+                        {dataSpmb?.catatan_guru && (
+                          <div className={`mt-4 p-4 rounded-xl text-xs leading-relaxed border ${
+                            isRejected 
+                              ? 'bg-red-500/5 border-red-500/20 text-red-300' 
+                              : 'bg-white/5 border-white/10 text-white/60'
+                          }`}>
+                            <span className="font-bold block mb-1 text-[10px] uppercase tracking-wider opacity-70">💬 Catatan Panitia</span>
+                            {dataSpmb.catatan_guru}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
 
                   {isLocked && (
                     <button onClick={() => window.print()} className="w-full mt-4 py-3.5 rounded-xl text-sm font-bold text-white bg-blue-500 hover:bg-blue-600 shadow-[0_0_20px_rgba(59,130,246,0.3)] transition-all flex items-center justify-center gap-2">
