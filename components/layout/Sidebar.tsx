@@ -459,7 +459,7 @@ function SidebarContent({
       <nav className="flex-1 px-3 overflow-y-auto custom-scroll space-y-6 pb-10">
         {NAV_SECTIONS.filter((section) => {
           if (user?.role === "guru") {
-            return section.label === "UTAMA" || section.label === "LAYANAN";
+            return section.label === "LAYANAN";
           }
           return true;
         }).map((section) => {

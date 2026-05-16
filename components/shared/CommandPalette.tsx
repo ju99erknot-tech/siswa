@@ -367,7 +367,7 @@ export function CommandPalette() {
     let availableCommands = COMMANDS;
     if (user?.role === "guru") {
       availableCommands = COMMANDS.filter((c) =>
-        ["Utama", "Data", "Layanan"].includes(c.section)
+        ["Layanan"].includes(c.section)
       );
     }
 
