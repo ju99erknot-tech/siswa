@@ -347,7 +347,7 @@ export default function PortalKelulusan() {
                         <button onClick={handleCetakSKL} className="w-full h-13 py-3.5 rounded-2xl text-sm font-bold text-amber-400/80 flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/15">
                           <Printer size={18} /> Cetak SKL
                         </button>
-                        <a href="/portal/spmb" className="w-full h-13 py-3.5 rounded-2xl text-sm font-bold text-emerald-400 flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20">
+                        <a href={`/portal/spmb?nisn=${siswa?.nisn}&tgl=${siswa?.tanggal_lahir || ""}&from=kelulusan`} className="w-full h-13 py-3.5 rounded-2xl text-sm font-bold text-emerald-400 flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20">
                           <GraduationCap size={18} /> Langsung Daftar SMP (SPMB)
                           <ArrowRight size={16} />
                         </a>

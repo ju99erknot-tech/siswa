@@ -13,6 +13,7 @@ import dynamic from "next/dynamic";
 import "leaflet/dist/leaflet.css";
 import QRCode from "react-qr-code";
 import { createClient } from "@/lib/supabase/client";
+import { useSearchParams } from "next/navigation";
 
 const MapContainer = dynamic(() => import("react-leaflet").then((m) => m.MapContainer), { ssr: false });
 const TileLayer = dynamic(() => import("react-leaflet").then((m) => m.TileLayer), { ssr: false });
@@ -82,6 +83,7 @@ const FilePreviewThumbnail = ({ file, onRemove, title, isLocked }: { file: File,
 
 export default function PortalSpmb() {
   const [pengaturan, setPengaturan] = useState<any>(null);
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     const fetchPengaturan = async () => {
@@ -132,6 +134,44 @@ export default function PortalSpmb() {
   useEffect(() => {
     setMapMountId(Date.now());
   }, []);
+
+  // Auto-bypass login when coming from kelulusan portal
+  useEffect(() => {
+    const from = searchParams.get("from");
+    const nisn = searchParams.get("nisn");
+    const tgl = searchParams.get("tgl");
+    if (from === "kelulusan" && nisn && tgl) {
+      setSearchNisn(nisn);
+      setSearchTglLahir(tgl);
+      setIsSearching(true);
+      fetch("/api/spmb/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nisn, tgl_lahir: tgl }),
+      })
+        .then((r) => r.json().then((d) => ({ ok: r.ok, data: d })))
+        .then(({ ok, data: json }) => {
+          if (!ok) throw new Error(json.error || "Gagal verifikasi");
+          setDataSiswa(json.siswa);
+          setDataSpmb(json.spmb || null);
+          if (json.spmb) {
+            setLintang(json.spmb.lintang || "");
+            setBujur(json.spmb.bujur || "");
+            setSekolah1(json.spmb.sekolah_tujuan_1 || "");
+            setSekolah2(json.spmb.sekolah_tujuan_2 || "");
+            if (json.spmb.jalur_pendaftaran) setJalur(json.spmb.jalur_pendaftaran);
+          }
+          if (json.siswa.no_wa) setNoWa(json.siswa.no_wa);
+          setStep("form");
+          toast.success(`Selamat datang dari portal kelulusan, ${json.siswa.nama.split(" ")[0]}! 🎓`);
+        })
+        .catch((e) => toast.error(e.message))
+        .finally(() => setIsSearching(false));
+      // Clean URL
+      window.history.replaceState({}, "", "/portal/spmb");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const openUploadModal = (type: DocType) => {
     setActiveDocType(type);
