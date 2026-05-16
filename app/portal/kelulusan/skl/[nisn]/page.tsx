@@ -81,8 +81,9 @@ export default function ESklPage() {
     : "-";
 
   return (
-    <div className="h-[100dvh] w-full relative flex flex-col items-center p-4 pt-8 pb-24 overflow-x-hidden overflow-y-auto" style={{ background: "linear-gradient(135deg, #050812 0%, #0a1128 50%, #050812 100%)" }}>
-      {/* Orbs */}
+    <div className="fixed inset-0 w-full h-[100dvh] overflow-y-auto overflow-x-hidden bg-[#050812]">
+      <div className="min-h-full w-full relative flex flex-col items-center p-4 pt-8 pb-24" style={{ background: "linear-gradient(135deg, #050812 0%, #0a1128 50%, #050812 100%)" }}>
+        {/* Orbs */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full blur-[120px] pointer-events-none" style={{ background: "radial-gradient(circle, rgba(212,168,67,0.15) 0%, transparent 70%)" }} />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full blur-[120px] pointer-events-none" style={{ background: "radial-gradient(circle, rgba(16,185,129,0.1) 0%, transparent 70%)" }} />
 
@@ -225,6 +226,7 @@ export default function ESklPage() {
       {/* Footer */}
       <div className="mt-auto pt-8 text-center z-10">
         <p className="text-[10px] text-white/15">{data.nama_sekolah} • E-SKL Digital {data.tahun_ajaran}</p>
+      </div>
       </div>
     </div>
   );
