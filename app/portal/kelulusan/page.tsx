@@ -205,7 +205,7 @@ export default function PortalKelulusan() {
 
         <AnimatePresence mode="wait">
           {step === "search" ? (
-            <motion.div key="search" initial={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }} animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }} exit={{ opacity: 0, scale: 0.95, filter: "blur(10px)" }} transition={{ duration: 0.5, type: "spring", bounce: 0.4 }} className="w-full max-w-md my-auto relative z-10">
+            <motion.div key="search" initial={{ opacity: 0, scale: 0.95, filter: "blur(10px)" }} animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }} exit={{ opacity: 0, scale: 0.95, filter: "blur(10px)" }} transition={{ duration: 0.4, ease: "easeOut" }} className="w-full max-w-md my-auto relative z-10">
               <div className="relative p-8 sm:p-10 rounded-[2.5rem] overflow-hidden" style={{ background: "linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 30px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)", backdropFilter: "blur(40px)" }}>
                 <div className="absolute -top-24 -right-24 w-48 h-48 bg-amber-500/20 rounded-full blur-[50px] pointer-events-none" />
                 <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-emerald-500/15 rounded-full blur-[50px] pointer-events-none" />

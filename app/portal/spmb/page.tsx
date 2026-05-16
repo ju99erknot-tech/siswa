@@ -447,10 +447,10 @@ export default function PortalSpmb() {
         {step === "search" ? (
           <motion.div
             key="search"
-            initial={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
+            initial={{ opacity: 0, scale: 0.95, filter: "blur(10px)" }}
             animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
             exit={{ opacity: 0, scale: 0.95, filter: "blur(10px)" }}
-            transition={{ duration: 0.5, type: "spring", bounce: 0.4 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
             className="w-full max-w-md my-auto relative z-10"
           >
             {/* Premium Card Container */}
