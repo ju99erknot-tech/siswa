@@ -423,7 +423,7 @@ export default function PortalSpmb() {
   return (
     <>
     {/* === SCREEN LAYOUT === */}
-    <div className="h-screen w-full relative flex flex-col items-center p-4 py-10 selection:bg-cyan-500/30 overflow-x-hidden overflow-y-auto print:hidden"
+    <div className="min-h-screen w-full relative flex flex-col items-center p-4 py-10 selection:bg-cyan-500/30 print:hidden"
       style={{
         background: 'linear-gradient(135deg, #050812 0%, #0a1128 50%, #050812 100%)',
       }}
