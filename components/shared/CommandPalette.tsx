@@ -318,7 +318,7 @@ function fuzzyMatch(text: string, query: string): boolean {
 }
 
 export function CommandPalette() {
-  const { dataSiswa, dataGuru, dataPrestasi, searchOpen: open, setSearchOpen: setOpen } = useAppStore();
+  const { user, dataSiswa, dataGuru, dataPrestasi, searchOpen: open, setSearchOpen: setOpen } = useAppStore();
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [recentSearches, setRecentSearches] = useState<string[]>(() => {
@@ -364,16 +364,23 @@ export function CommandPalette() {
   };
 
   const results = useMemo(() => {
-    if (!query.trim()) return COMMANDS;
+    let availableCommands = COMMANDS;
+    if (user?.role === "guru") {
+      availableCommands = COMMANDS.filter((c) =>
+        ["Utama", "Data", "Layanan"].includes(c.section)
+      );
+    }
+
+    if (!query.trim()) return availableCommands;
     const q = query.toLowerCase();
     // Exact match ranks higher than fuzzy
-    const exactCmds = COMMANDS.filter(
+    const exactCmds = availableCommands.filter(
       (c) =>
         c.label.toLowerCase().includes(q) ||
         c.section.toLowerCase().includes(q) ||
         c.keywords?.toLowerCase().includes(q),
     );
-    const fuzzyCmds = COMMANDS.filter(
+    const fuzzyCmds = availableCommands.filter(
       (c) =>
         !exactCmds.includes(c) &&
         (fuzzyMatch(c.label, q) || fuzzyMatch(c.keywords || "", q)),
@@ -431,7 +438,7 @@ export function CommandPalette() {
       ...matchedPrestasi,
       ...matchedCommands,
     ];
-  }, [query, dataSiswa, dataGuru, dataPrestasi]);
+  }, [query, dataSiswa, dataGuru, dataPrestasi, user?.role]);
 
   const grouped = useMemo(() => {
     const map = new Map<string, typeof results>();
