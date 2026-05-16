@@ -504,9 +504,7 @@ export default function PortalSpmb() {
               >
                 {/* NISN Input */}
                 <div className="space-y-2 group">
-                  <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest pl-1 group-focus-within:text-cyan-400 transition-colors">
-                    Nomor Induk (NISN)
-                  </label>
+                  <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest pl-1 group-focus-within:text-cyan-400 transition-colors">NISN</label>
                   <div className="relative">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20 group-focus-within:text-cyan-400 transition-colors" />
                     <input
@@ -514,20 +512,8 @@ export default function PortalSpmb() {
                       required
                       value={searchNisn}
                       onChange={(e) => setSearchNisn(e.target.value)}
-                      className="w-full h-14 pl-12 pr-4 rounded-2xl text-sm font-medium text-white outline-none transition-all placeholder:text-white/20 focus:bg-cyan-500/5"
-                      style={{ 
-                        background: 'rgba(0,0,0,0.2)', 
-                        border: '1px solid rgba(255,255,255,0.08)',
-                        boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.2)'
-                      }}
-                      onFocus={e => {
-                        e.currentTarget.style.borderColor = 'rgba(6,182,212,0.5)'
-                        e.currentTarget.style.boxShadow = '0 0 0 4px rgba(6,182,212,0.1), inset 0 2px 4px rgba(0,0,0,0.2)'
-                      }}
-                      onBlur={e => {
-                        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'
-                        e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0,0,0,0.2)'
-                      }}
+                      className="w-full h-14 pl-12 pr-4 rounded-2xl text-sm font-medium text-white outline-none transition-all placeholder:text-white/20 focus:ring-2 focus:ring-cyan-500/30"
+                      style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.08)' }}
                       placeholder="Contoh: 0123456789"
                     />
                   </div>
@@ -536,9 +522,7 @@ export default function PortalSpmb() {
                 {/* TGL LAHIR Input */}
                 <div className="space-y-2 group">
                   <div className="flex items-center justify-between pl-1">
-                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest group-focus-within:text-cyan-400 transition-colors">
-                      Tanggal Lahir Siswa
-                    </label>
+                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest group-focus-within:text-cyan-400 transition-colors">Tanggal Lahir</label>
                     <span className="text-[9px] text-white/20 italic">Bulan / Tanggal / Tahun</span>
                   </div>
                   <div className="relative">
@@ -549,20 +533,8 @@ export default function PortalSpmb() {
                       lang="id-ID"
                       value={searchTglLahir}
                       onChange={(e) => setSearchTglLahir(e.target.value)}
-                      className="w-full h-14 pl-12 pr-4 rounded-2xl text-sm font-medium text-white outline-none transition-all [color-scheme:dark] focus:bg-cyan-500/5"
-                      style={{ 
-                        background: 'rgba(0,0,0,0.2)', 
-                        border: '1px solid rgba(255,255,255,0.08)',
-                        boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.2)'
-                      }}
-                      onFocus={e => {
-                        e.currentTarget.style.borderColor = 'rgba(6,182,212,0.5)'
-                        e.currentTarget.style.boxShadow = '0 0 0 4px rgba(6,182,212,0.1), inset 0 2px 4px rgba(0,0,0,0.2)'
-                      }}
-                      onBlur={e => {
-                        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'
-                        e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0,0,0,0.2)'
-                      }}
+                      className="w-full h-14 pl-12 pr-4 rounded-2xl text-sm font-medium text-white outline-none transition-all [color-scheme:dark] focus:ring-2 focus:ring-cyan-500/30"
+                      style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.08)' }}
                     />
                   </div>
                 </div>
