@@ -139,36 +139,49 @@ export default function PortalSpmb() {
     const from = params.get("from");
     const nisn = params.get("nisn");
     const tgl = params.get("tgl");
-    if (from === "kelulusan" && nisn && tgl) {
-      setSearchNisn(nisn);
-      setSearchTglLahir(tgl);
-      setIsSearching(true);
-      fetch("/api/spmb/search", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nisn, tgl_lahir: tgl }),
-      })
-        .then((r) => r.json().then((d) => ({ ok: r.ok, data: d })))
-        .then(({ ok, data: json }) => {
-          if (!ok) throw new Error(json.error || "Gagal verifikasi");
-          setDataSiswa(json.siswa);
-          setDataSpmb(json.spmb || null);
-          if (json.spmb) {
-            setLintang(json.spmb.lintang || "");
-            setBujur(json.spmb.bujur || "");
-            setSekolah1(json.spmb.sekolah_tujuan_1 || "");
-            setSekolah2(json.spmb.sekolah_tujuan_2 || "");
-            if (json.spmb.jalur_pendaftaran) setJalur(json.spmb.jalur_pendaftaran);
-          }
-          if (json.siswa.no_wa) setNoWa(json.siswa.no_wa);
-          setStep("form");
-          toast.success(`Selamat datang dari portal kelulusan, ${json.siswa.nama.split(" ")[0]}! 🎓`);
-        })
-        .catch((e) => toast.error(e.message))
-        .finally(() => setIsSearching(false));
-      // Clean URL
-      window.history.replaceState({}, "", "/portal/spmb");
-    }
+    if (from !== "kelulusan" || !nisn || !tgl) return;
+    
+    // Clean URL immediately
+    window.history.replaceState({}, "", "/portal/spmb");
+    
+    setSearchNisn(nisn);
+    setSearchTglLahir(tgl);
+    setIsSearching(true);
+
+    (async () => {
+      try {
+        const res = await fetch("/api/spmb/search", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nisn, tgl_lahir: tgl }),
+        });
+
+        const text = await res.text();
+        let json: any;
+        try { json = JSON.parse(text); } catch { 
+          throw new Error("Server error, silakan coba login manual"); 
+        }
+
+        if (!res.ok) throw new Error(json.error || "Gagal verifikasi");
+
+        setDataSiswa(json.siswa);
+        setDataSpmb(json.spmb || null);
+        if (json.spmb) {
+          setLintang(json.spmb.lintang || "");
+          setBujur(json.spmb.bujur || "");
+          setSekolah1(json.spmb.sekolah_tujuan_1 || "");
+          setSekolah2(json.spmb.sekolah_tujuan_2 || "");
+          if (json.spmb.jalur_pendaftaran) setJalur(json.spmb.jalur_pendaftaran);
+        }
+        if (json.siswa.no_wa) setNoWa(json.siswa.no_wa);
+        setStep("form");
+        toast.success(`Selamat datang dari portal kelulusan, ${json.siswa.nama.split(" ")[0]}! 🎓`);
+      } catch (e: any) {
+        toast.error(e.message || "Gagal bypass, silakan login manual");
+      } finally {
+        setIsSearching(false);
+      }
+    })();
   }, []);
 
   const openUploadModal = (type: DocType) => {
