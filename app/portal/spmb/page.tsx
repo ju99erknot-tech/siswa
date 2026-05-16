@@ -693,7 +693,7 @@ export default function PortalSpmb() {
                       </div>
                       <div>
                         <h4 className="font-bold text-white text-sm">Jalur Domisili (Zonasi)</h4>
-                        <span className="text-[10px] text-blue-400 font-bold">Kuota: 35% - 50%</span>
+                        <span className="text-[10px] text-blue-400 font-bold">Kuota: minimal 40%</span>
                       </div>
                     </div>
                     <p className="text-xs text-white/60 leading-relaxed mb-3">
@@ -717,7 +717,7 @@ export default function PortalSpmb() {
                       </div>
                       <div>
                         <h4 className="font-bold text-white text-sm">Jalur Prestasi</h4>
-                        <span className="text-[10px] text-yellow-400 font-bold">Kuota: 30%</span>
+                        <span className="text-[10px] text-yellow-400 font-bold">Kuota: minimal 25%</span>
                       </div>
                     </div>
                     <p className="text-xs text-white/60 leading-relaxed mb-3">
@@ -741,7 +741,7 @@ export default function PortalSpmb() {
                       </div>
                       <div>
                         <h4 className="font-bold text-white text-sm">Jalur Afirmasi</h4>
-                        <span className="text-[10px] text-emerald-400 font-bold">Kuota: 30%</span>
+                        <span className="text-[10px] text-emerald-400 font-bold">Kuota: minimal 20%</span>
                       </div>
                     </div>
                     <p className="text-xs text-white/60 leading-relaxed">
@@ -762,7 +762,7 @@ export default function PortalSpmb() {
                       </div>
                       <div>
                         <h4 className="font-bold text-white text-sm">Jalur Mutasi</h4>
-                        <span className="text-[10px] text-violet-400 font-bold">Kuota: 5%</span>
+                        <span className="text-[10px] text-violet-400 font-bold">Kuota: maksimal 5%</span>
                       </div>
                     </div>
                     <p className="text-xs text-white/60 leading-relaxed">
