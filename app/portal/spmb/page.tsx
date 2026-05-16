@@ -328,13 +328,13 @@ export default function PortalSpmb() {
       return;
     }
 
-    if ((jalur === 'Prestasi' || jalur === 'Afirmasi' || jalur === 'Mutasi') && !hasPendukung) {
-      toast.error(`Anda memilih Jalur ${jalur}. Wajib melampirkan Dokumen Pendukung!`);
+    if (!jalur) {
+      toast.error("Silakan pilih Jalur SPMB terlebih dahulu!");
       return;
     }
 
-    if (!jalur) {
-      toast.error("Silakan pilih Jalur SPMB terlebih dahulu!");
+    if (!hasPendukung) {
+      toast.error(`Anda memilih Jalur ${jalur}. Wajib melampirkan syarat khusus (${jalur === 'Zonasi' ? 'Foto Depan Rumah' : 'Dokumen Pendukung'})!`);
       return;
     }
 
@@ -1070,7 +1070,7 @@ export default function PortalSpmb() {
 
                   {/* Item: Dokumen Pendukung (Dinamis) */}
                   <AnimatePresence>
-                    {(jalur === 'Prestasi' || jalur === 'Afirmasi' || jalur === 'Mutasi') && (
+                    {jalur && (
                       <motion.div 
                         initial={{ opacity: 0, height: 0, scale: 0.9 }} 
                         animate={{ opacity: 1, height: 'auto', scale: 1 }} 
@@ -1080,11 +1080,11 @@ export default function PortalSpmb() {
                         {dataSpmb?.url_dokumen_pendukung && !filePendukung ? (
                           <div className="flex flex-col items-center relative z-10">
                             <div className="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-2"><Check size={20} /></div>
-                            <span className="text-xs font-bold text-emerald-400">Dokumen Pendukung {jalur} Tersimpan</span>
+                            <span className="text-xs font-bold text-emerald-400">Dokumen Syarat {jalur} Tersimpan</span>
                             {!isLocked && <button onClick={() => openUploadModal("pendukung")} className="text-[10px] text-white/40 hover:text-white mt-2 underline">Ganti Dokumen Baru</button>}
                           </div>
                         ) : filePendukung ? (
-                          <FilePreviewThumbnail file={filePendukung} title={`Dok. ${jalur}`} onRemove={() => setFilePendukung(null)} isLocked={isLocked} />
+                          <FilePreviewThumbnail file={filePendukung} title={`Syarat ${jalur}`} onRemove={() => setFilePendukung(null)} isLocked={isLocked} />
                         ) : (
                           <div className="flex flex-col items-center relative z-10">
                             <AlertCircle className="w-8 h-8 mb-2 text-rose-400/80 animate-pulse" />
@@ -1092,6 +1092,7 @@ export default function PortalSpmb() {
                               Upload Syarat Jalur {jalur}
                             </span>
                             <p className="text-[10px] text-rose-400 mt-1 px-4 max-w-sm">
+                              {jalur === 'Zonasi' && "Wajib upload foto tampak depan rumah tempat tinggal saat ini (foto geotagging)."}
                               {jalur === 'Prestasi' && "Wajib upload foto/PDF Piagam Sertifikat Lomba."}
                               {jalur === 'Afirmasi' && "Wajib upload foto Kartu KIP / KPS / PKH asli yang masih berlaku."}
                               {jalur === 'Mutasi' && "Wajib upload foto Surat Keterangan Pindah Tugas Orang Tua."}
