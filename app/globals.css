@@ -91,7 +91,6 @@ body {
   color: var(--text-primary);
   font-size: 14px;
   line-height: 1.5;
-  overflow: hidden;
 }
 
 ::selection { background: rgba(139,92,246,0.25); color: #e9d5ff; }
