@@ -13,7 +13,6 @@ import dynamic from "next/dynamic";
 import "leaflet/dist/leaflet.css";
 import QRCode from "react-qr-code";
 import { createClient } from "@/lib/supabase/client";
-import { useSearchParams } from "next/navigation";
 
 const MapContainer = dynamic(() => import("react-leaflet").then((m) => m.MapContainer), { ssr: false });
 const TileLayer = dynamic(() => import("react-leaflet").then((m) => m.TileLayer), { ssr: false });
@@ -83,7 +82,6 @@ const FilePreviewThumbnail = ({ file, onRemove, title, isLocked }: { file: File,
 
 export default function PortalSpmb() {
   const [pengaturan, setPengaturan] = useState<any>(null);
-  const searchParams = useSearchParams();
 
   useEffect(() => {
     const fetchPengaturan = async () => {
@@ -137,9 +135,10 @@ export default function PortalSpmb() {
 
   // Auto-bypass login when coming from kelulusan portal
   useEffect(() => {
-    const from = searchParams.get("from");
-    const nisn = searchParams.get("nisn");
-    const tgl = searchParams.get("tgl");
+    const params = new URLSearchParams(window.location.search);
+    const from = params.get("from");
+    const nisn = params.get("nisn");
+    const tgl = params.get("tgl");
     if (from === "kelulusan" && nisn && tgl) {
       setSearchNisn(nisn);
       setSearchTglLahir(tgl);
@@ -170,8 +169,7 @@ export default function PortalSpmb() {
       // Clean URL
       window.history.replaceState({}, "", "/portal/spmb");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+  }, []);
 
   const openUploadModal = (type: DocType) => {
     setActiveDocType(type);
