@@ -5,7 +5,7 @@ import {
   GraduationCap, Save, Loader2, CheckCircle, XCircle, Search,
   ToggleLeft, ToggleRight, Calendar, MessageSquare, Users,
   ExternalLink, AlertCircle, Calculator, Edit3,
-  ArrowUp, ArrowDown, ArrowUpDown,
+  ArrowUp, ArrowDown, ArrowUpDown, Printer,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
@@ -671,6 +671,19 @@ export default function KelulusanPage() {
                         <button onClick={() => updateStatus(s.id, "TIDAK LULUS")} title="Set TIDAK LULUS"
                           className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-all", s.status_kelulusan === "TIDAK LULUS" ? "bg-rose-500/20 text-rose-400 border border-rose-500/30" : "bg-white/5 text-white/20 border border-white/5 hover:text-rose-400 hover:bg-rose-500/10")}>
                           <XCircle size={14} />
+                        </button>
+                        <button
+                          onClick={() => window.open(`/portal/kelulusan/skl/${s.nisn}`, "_blank")}
+                          disabled={s.status_kelulusan !== "LULUS"}
+                          title={s.status_kelulusan === "LULUS" ? "Cetak SKL" : "Siswa belum lulus"}
+                          className={cn(
+                            "w-8 h-8 rounded-lg flex items-center justify-center transition-all",
+                            s.status_kelulusan === "LULUS"
+                              ? "bg-white/5 text-white/40 border border-white/5 hover:text-sky-400 hover:bg-sky-500/10 cursor-pointer"
+                              : "bg-white/5 text-white/10 border border-white/5 cursor-not-allowed opacity-40"
+                          )}
+                        >
+                          <Printer size={14} />
                         </button>
                       </div>
                     </td>

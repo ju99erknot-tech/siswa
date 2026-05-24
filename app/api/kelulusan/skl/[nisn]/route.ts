@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { createClient as createServerClient } from "@/lib/supabase/server";
 
 const getSupabaseAdmin = () =>
   createClient(
@@ -26,7 +27,19 @@ export async function GET(
       .limit(1)
       .single();
 
-    if (!pengaturan?.portal_kelulusan_aktif) {
+    // Check if user is authenticated as admin/staff
+    let isUserAuthenticated = false;
+    try {
+      const supabaseServer = await createServerClient();
+      const { data: { user } } = await supabaseServer.auth.getUser();
+      if (user) {
+        isUserAuthenticated = true;
+      }
+    } catch (err) {
+      console.error("[SKL API Auth Check Error]", err);
+    }
+
+    if (!pengaturan?.portal_kelulusan_aktif && !isUserAuthenticated) {
       return NextResponse.json(
         { error: "Portal belum aktif" },
         { status: 403 }
