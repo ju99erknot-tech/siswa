@@ -8,6 +8,7 @@ import {
   Loader2, AlertCircle, Star, Award,
 } from "lucide-react";
 import QRCode from "react-qr-code";
+import { renderToString } from "react-dom/server";
 import { SCHOOL } from "@/lib/school.config";
 
 interface SklData {
@@ -16,10 +17,17 @@ interface SklData {
     kelas?: string; tempat_lahir?: string; tanggal_lahir?: string;
     nama_ayah?: string; nama_ibu?: string; foto_url?: string;
     no_peserta_un?: string;
+    nomor_skl?: string | null;
+    nilai_kelulusan?: Record<string, string> | null;
   };
   nama_sekolah: string; nama_kepsek: string; nip_kepsek: string;
   npsn: string; alamat_sekolah: string; tahun_ajaran: string;
   logo_url?: string;
+  kop_surat_url?: string;
+  tanggal_kelulusan?: string;
+  nama_mulok1?: string;
+  nama_mulok2?: string;
+  nama_mulok3?: string;
 }
 
 export default function ESklPage() {
@@ -53,6 +61,167 @@ export default function ESklPage() {
       await navigator.clipboard.writeText(text);
       alert("Link E-SKL berhasil disalin!");
     }
+  };
+
+  const handlePrintSKL = () => {
+    if (!data) return;
+    const { siswa } = data;
+    const tglLahirFormatted = siswa.tanggal_lahir
+      ? new Date(siswa.tanggal_lahir).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })
+      : "-";
+    const qrSvg = renderToString(<QRCode value={verifyUrl} size={70} level="M" />);
+    const parentName = siswa.nama_ayah || siswa.nama_ibu || "-";
+
+    const getIndonesianDate = (dateStr: string | null | undefined) => {
+      if (!dateStr) return "-";
+      try {
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return dateStr;
+        return d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+      } catch {
+        return dateStr;
+      }
+    };
+
+    const formattedTglKelulusan = getIndonesianDate(data.tanggal_kelulusan || "2026-06-02");
+
+    const n = siswa.nilai_kelulusan || {};
+    const formatNilaiVal = (key: string) => {
+      const v = n[key];
+      if (v === undefined || v === null || v.trim() === "") return "-";
+      return parseFloat(v.replace(",", ".")).toFixed(2).replace(".", ",");
+    };
+
+    const mapels = [
+      { no: "1.", nama: "Pendidikan Agama dan Budi Pekerti", key: "pai" },
+      { no: "2.", nama: "Pendidikan Pancasila", key: "ppkn" },
+      { no: "3.", nama: "Bahasa Indonesia", key: "indo" },
+      { no: "4.", nama: "Matematika", key: "mtk" },
+      { no: "5.", nama: "Ilmu Pengetahuan Alam dan Sosial", key: "ipas" },
+      { no: "6.", nama: "Seni Budaya dan Prakarya : Seni Rupa", key: "sbdp" },
+      { no: "7.", nama: "Pendidikan Jasmani, Olahraga dan Kesehatan", key: "pjok" },
+      { no: "8.", nama: "Bahasa Inggris", key: "bing" },
+      { no: "9.", nama: `Muatan Lokal : ${data.nama_mulok1 || "Bahasa dan Sastra Sunda"}`, key: "mulok1" },
+    ];
+    if (data.nama_mulok2) {
+      mapels.push({ no: "10.", nama: `Muatan Lokal : ${data.nama_mulok2}`, key: "mulok2" });
+    }
+    if (data.nama_mulok3) {
+      mapels.push({ no: "11.", nama: `Muatan Lokal : ${data.nama_mulok3}`, key: "mulok3" });
+    }
+
+    const mapelRows = mapels.map(m => `
+      <tr>
+        <td class="center">${m.no}</td>
+        <td>${m.nama}</td>
+        <td class="center bold">${formatNilaiVal(m.key)}</td>
+      </tr>
+    `).join("");
+
+    const getAvg = () => {
+      let sum = 0;
+      let count = 0;
+      mapels.forEach(m => {
+        const v = n[m.key];
+        if (v && v.trim() !== "") {
+          const num = parseFloat(v.replace(",", "."));
+          if (!isNaN(num)) {
+            sum += num;
+            count++;
+          }
+        }
+      });
+      return count > 0 ? (sum / count).toFixed(2).replace(".", ",") : "-";
+    };
+
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+    printWindow.document.write(`
+      <html><head><title>SKL - ${siswa.nama}</title>
+      <style>
+        @page { size: A4 portrait; margin: 10mm 15mm; }
+        body { font-family: 'Times New Roman', serif; font-size: 11pt; margin: 0; padding: 20px; background: #eee; color: #000; }
+        .surat-page { background: white; width: 210mm; min-height: 297mm; margin: 0 auto; padding: 10mm 15mm; box-sizing: border-box; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .kop-surat { text-align: center; margin-bottom: 15px; margin-left: -5mm; margin-right: -5mm; }
+        .kop-surat img { width: 100%; max-height: 140px; object-fit: contain; }
+        .judul-box { text-align: center; margin: 15px 0; }
+        .judul-box h2 { margin: 0; font-size: 13pt; text-decoration: underline; font-weight: bold; }
+        .judul-box p { margin: 3px 0 0 0; font-size: 11pt; font-family: 'Courier New', Courier, monospace; font-weight: bold; }
+        .isi-surat { text-align: justify; line-height: 1.4; font-size: 11pt; }
+        .identitas-table { margin-left: 20px; width: 100%; margin-bottom: 10px; }
+        .identitas-table td { padding: 2px 0; vertical-align: top; }
+        .lulus-box { text-align: center; font-size: 14pt; font-weight: bold; margin: 10px 0; border: 1.5px solid #000; padding: 5px; letter-spacing: 2px; }
+        
+        .nilai-table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 10.5pt; }
+        .nilai-table th, .nilai-table td { border: 1px solid black; padding: 4px 8px; }
+        .nilai-table th { text-align: center; background-color: #f2f2f2; }
+        .nilai-table td.center { text-align: center; }
+        .nilai-table td.bold { font-weight: bold; }
+        
+        .footer-box { margin-top: 25px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .qr-box { text-align: center; padding: 5px; border: 1px solid #ddd; border-radius: 6px; display: inline-block; }
+        .qr-box p { font-size: 7px; color: #888; margin: 3px 0 0 0; font-family: sans-serif; }
+        .ttd-box { width: 230px; text-align: center; font-size: 11pt; }
+        .ttd-name { font-weight: bold; text-decoration: underline; text-transform: uppercase; margin-top: 60px; }
+        .no-print { position: fixed; top: 20px; right: 20px; z-index: 1000; display: flex; gap: 10px; }
+        .btn { background: #D4A843; color: white; padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        @media print { body { background: white; padding: 0; } .surat-page { margin: 0; box-shadow: none; padding: 5mm 10mm; } .no-print { display: none !important; } }
+      </style></head><body>
+        <div class="no-print">
+          <button class="btn" onclick="window.print()">🖨️ Cetak Sekarang</button>
+          <button class="btn" style="background:#64748b" onclick="window.close()">Tutup</button>
+        </div>
+        <div class="surat-page">
+          <div class="kop-surat"><img src="${data.kop_surat_url || 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgHJHdzvsrvzHVMFsAmI_Ra_4vlYn39plogGMmNIUO7MV71T8zT9YWUFQyO5UD6oeSQ7jew1exTAXcI24JwK3eBiokcmNppHqGjvq70RTfjeYdZAhIahHq0D8m2Jrixl_8bb6BaFGhm0xpov4cojZ_ydeyOtE1xM7wrxn7FSMy0EP5KTuyqWVscaIkCyN3T/s955/KOP%20Baru.png'}" alt="KOP" /></div>
+          <div class="judul-box">
+            <h2>SURAT KETERANGAN KELULUSAN</h2>
+            <p>Nomor: ${siswa.nomor_skl || "....../......./Sket-SD/VI/2026"}</p>
+          </div>
+          <div class="isi-surat">
+            <p>Yang bertanda tangan di bawah ini Kepala ${data.nama_sekolah}, menerangkan bahwa:</p>
+            <table class="identitas-table">
+              <tr><td width="35%">Nama</td><td width="2%">:</td><td style="font-weight:bold;text-transform:uppercase">${siswa.nama}</td></tr>
+              <tr><td>Tempat, Tanggal Lahir</td><td>:</td><td>${siswa.tempat_lahir || "-"}, ${tglLahirFormatted}</td></tr>
+              <tr><td>Nama Orang Tua/Wali</td><td>:</td><td>${parentName}</td></tr>
+              <tr><td>Nomor Induk Siswa</td><td>:</td><td>${siswa.nis || "-"}</td></tr>
+              <tr><td>Nomor Induk Siswa Nasional</td><td>:</td><td><b>${siswa.nisn}</b></td></tr>
+            </table>
+            
+            <div style="text-align: center; font-weight: bold; font-style: italic; margin-top: 10px; font-size: 13pt;">L U L U S</div>
+            
+            <p>dari ${data.nama_sekolah} pada tanggal ${formattedTglKelulusan}, setelah memenuhi kriteria sesuai dengan peraturan perundang-undangan dengan nilai sebagai berikut:</p>
+            
+            <table class="nilai-table">
+              <thead>
+                <tr>
+                  <th style="width: 8%;">No</th>
+                  <th style="width: 62%;">Mata Pelajaran</th>
+                  <th style="width: 30%;">Nilai</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${mapelRows}
+                <tr style="background-color: #f9f9f9;">
+                  <td colspan="2" class="center bold">Rata - Rata</td>
+                  <td class="center bold" style="font-size: 11.5pt;">${getAvg()}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <div class="footer-box">
+            <div class="qr-box">${qrSvg}<p>Scan untuk verifikasi</p></div>
+            <div class="ttd-box">
+              <p>Kab. Sukabumi, ${formattedTglKelulusan}</p>
+              <p>Kepala Sekolah,</p>
+              <div class="ttd-name">${data.nama_kepsek || "___________________"}</div>
+              <div>NIP. ${data.nip_kepsek || "___________________"}</div>
+            </div>
+          </div>
+        </div>
+      </body></html>
+    `);
+    printWindow.document.close();
   };
 
   if (loading) {
@@ -129,6 +298,9 @@ export default function ESklPage() {
           <h1 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 print:from-black print:to-black uppercase tracking-wider">
             Surat Keterangan Lulus
           </h1>
+          {siswa.nomor_skl && (
+            <p className="text-xs font-mono font-bold text-amber-400/90 mt-1.5">No. {siswa.nomor_skl}</p>
+          )}
           <p className="text-[10px] text-white/30 print:text-gray-500 mt-1 tracking-widest uppercase">E-SKL Digital • TP {data.tahun_ajaran}</p>
         </div>
 
@@ -165,6 +337,50 @@ export default function ESklPage() {
                 <p className="text-xs font-bold text-white/70 print:text-black leading-snug">{item.value}</p>
               </div>
             ))}
+          </div>
+
+          {/* Grades Table */}
+          <div className="rounded-2xl border border-white/5 overflow-hidden" style={{ background: "rgba(0,0,0,0.2)" }}>
+            <div className="px-4 py-3 bg-white/5 border-b border-white/5 flex items-center justify-between">
+              <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">Daftar Nilai Asesmen</span>
+              <span className="text-xs font-mono font-bold text-emerald-400">
+                Rata-Rata: {(() => {
+                  let sum = 0, count = 0;
+                  const n = siswa.nilai_kelulusan || {};
+                  Object.values(n).forEach(v => {
+                    if (v && v.trim() !== "") {
+                      const num = parseFloat(v.replace(",", "."));
+                      if (!isNaN(num)) { sum += num; count++; }
+                    }
+                  });
+                  return count > 0 ? (sum / count).toFixed(2).replace(".", ",") : "0,00";
+                })()}
+              </span>
+            </div>
+            <div className="max-h-[220px] overflow-y-auto divide-y divide-white/[0.03]">
+              {[
+                { label: "Pendidikan Agama", key: "pai" },
+                { label: "Pendidikan Pancasila (PPKn)", key: "ppkn" },
+                { label: "Bahasa Indonesia", key: "indo" },
+                { label: "Matematika", key: "mtk" },
+                { label: "Ilmu Pengetahuan Alam (IPA)", key: "ipa" },
+                { label: "Ilmu Pengetahuan Sosial (IPS)", key: "ips" },
+                { label: "Seni Budaya & Prakarya", key: "sbdp" },
+                { label: "PJOK", key: "pjok" },
+                { label: data.nama_mulok1 || "Bahasa Sunda", key: "mulok1" },
+                ...(data.nama_mulok2 ? [{ label: data.nama_mulok2, key: "mulok2" }] : []),
+                ...(data.nama_mulok3 ? [{ label: data.nama_mulok3, key: "mulok3" }] : []),
+              ].map(subj => {
+                const val = siswa.nilai_kelulusan?.[subj.key];
+                const formatted = val ? parseFloat(val).toFixed(2).replace(".", ",") : "—";
+                return (
+                  <div key={subj.key} className="flex justify-between items-center px-4 py-2 text-xs">
+                    <span className="text-white/60">{subj.label}</span>
+                    <span className="font-mono font-bold text-white/95">{formatted}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           {/* LULUS Status */}
@@ -217,7 +433,7 @@ export default function ESklPage() {
           style={{ background: "linear-gradient(135deg, #D4A843, #b8860b)", boxShadow: "0 10px 25px -5px rgba(212,168,67,0.3)" }}>
           <Share2 size={18} /> Bagikan E-SKL
         </button>
-        <button onClick={() => window.print()} className="w-full py-3.5 rounded-2xl text-sm font-bold text-white/50 flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 transition-all border border-white/5">
+        <button onClick={handlePrintSKL} className="w-full py-3.5 rounded-2xl text-sm font-bold text-white/50 flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 transition-all border border-white/5">
           <Download size={16} /> Unduh / Cetak
         </button>
       </motion.div>

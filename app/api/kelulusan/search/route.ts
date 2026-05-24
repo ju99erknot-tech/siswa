@@ -44,7 +44,7 @@ export async function POST(req: Request) {
     const { data: siswa, error: siswaError } = await supabaseAdmin
       .from("siswa")
       .select(
-        "id, nama, nisn, nis, jk, kelas, tempat_lahir, tanggal_lahir, nama_ayah, nama_ibu, foto_url, status_kelulusan"
+        "id, nama, nisn, nis, jk, kelas, tempat_lahir, tanggal_lahir, nama_ayah, nama_ibu, foto_url, status_kelulusan, nomor_skl, nilai_kelulusan"
       )
       .eq("nisn", nisn)
       .eq("tanggal_lahir", tgl_lahir)
@@ -78,6 +78,11 @@ export async function POST(req: Request) {
         nama_kepsek: pengaturan?.nama_kepsek || null,
         nip_kepsek: pengaturan?.nip_kepsek || null,
         nama_sekolah: pengaturan?.nama_sekolah || null,
+        tanggal_kelulusan: pengaturan?.tanggal_kelulusan || null,
+        nama_mulok1: pengaturan?.nama_mulok1 || null,
+        nama_mulok2: pengaturan?.nama_mulok2 || null,
+        nama_mulok3: pengaturan?.nama_mulok3 || null,
+        kop_surat_url: pengaturan?.kop_surat_url || null,
       },
       { status: 200 }
     );

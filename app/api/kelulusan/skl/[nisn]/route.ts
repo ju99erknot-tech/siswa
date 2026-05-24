@@ -35,7 +35,7 @@ export async function GET(
 
     const { data: siswa } = await supabase
       .from("siswa")
-      .select("id, nama, nisn, nis, jk, kelas, tempat_lahir, tanggal_lahir, nama_ayah, nama_ibu, foto_url, status_kelulusan, no_peserta_un")
+      .select("id, nama, nisn, nis, jk, kelas, tempat_lahir, tanggal_lahir, nama_ayah, nama_ibu, foto_url, status_kelulusan, no_peserta_un, nomor_skl, nilai_kelulusan")
       .eq("nisn", nisn)
       .single();
 
@@ -55,6 +55,11 @@ export async function GET(
       alamat_sekolah: pengaturan.alamat_sekolah,
       tahun_ajaran: pengaturan.tahun_ajaran,
       logo_url: pengaturan.logo_url,
+      kop_surat_url: pengaturan.kop_surat_url,
+      tanggal_kelulusan: pengaturan.tanggal_kelulusan,
+      nama_mulok1: pengaturan.nama_mulok1,
+      nama_mulok2: pengaturan.nama_mulok2,
+      nama_mulok3: pengaturan.nama_mulok3,
     });
   } catch {
     return NextResponse.json({ error: "Server error" }, { status: 500 });

@@ -22,6 +22,8 @@ interface SiswaData {
   kelas?: string; tempat_lahir?: string; tanggal_lahir?: string;
   nama_ayah?: string; nama_ibu?: string; foto_url?: string;
   status_kelulusan?: string;
+  nomor_skl?: string | null;
+  nilai_kelulusan?: Record<string, string> | null;
 }
 
 export default function PortalKelulusan() {
@@ -35,6 +37,11 @@ export default function PortalKelulusan() {
   const [namaKepsek, setNamaKepsek] = useState<string | null>(null);
   const [nipKepsek, setNipKepsek] = useState<string | null>(null);
   const [namaSekolah, setNamaSekolah] = useState<string | null>(null);
+  const [kopSuratUrl, setKopSuratUrl] = useState<string | null>(null);
+  const [tglKelulusanSkl, setTglKelulusanSkl] = useState<string | null>(null);
+  const [namaMulok1, setNamaMulok1] = useState<string | null>(null);
+  const [namaMulok2, setNamaMulok2] = useState<string | null>(null);
+  const [namaMulok3, setNamaMulok3] = useState<string | null>(null);
   const [portalClosed, setPortalClosed] = useState(false);
   const [tglPengumuman, setTglPengumuman] = useState<string | null>(null);
   const [countdown, setCountdown] = useState({ d: 0, h: 0, m: 0, s: 0 });
@@ -80,6 +87,11 @@ export default function PortalKelulusan() {
       setNamaKepsek(json.nama_kepsek);
       setNipKepsek(json.nip_kepsek);
       setNamaSekolah(json.nama_sekolah);
+      setKopSuratUrl(json.kop_surat_url);
+      setTglKelulusanSkl(json.tanggal_kelulusan);
+      setNamaMulok1(json.nama_mulok1);
+      setNamaMulok2(json.nama_mulok2);
+      setNamaMulok3(json.nama_mulok3);
       setStep("result");
     } catch (err: any) {
       toast.error(err.message);
@@ -131,60 +143,153 @@ export default function PortalKelulusan() {
     const verifyUrl = `${window.location.origin}/portal/kelulusan/skl/${siswa.nisn}`;
     const tglLahirFormatted = siswa.tanggal_lahir ? new Date(siswa.tanggal_lahir).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : "-";
     const tglCetak = new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
-    const qrSvg = renderToString(<QRCode value={verifyUrl} size={80} level="M" />);
-    const kopUrl = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgHJHdzvsrvzHVMFsAmI_Ra_4vlYn39plogGMmNIUO7MV71T8zT9YWUFQyO5UD6oeSQ7jew1exTAXcI24JwK3eBiokcmNppHqGjvq70RTfjeYdZAhIahHq0D8m2Jrixl_8bb6BaFGhm0xpov4cojZ_ydeyOtE1xM7wrxn7FSMy0EP5KTuyqWVscaIkCyN3T/s955/KOP%20Baru.png";
+    const qrSvg = renderToString(<QRCode value={verifyUrl} size={70} level="M" />);
+    const currentKopUrl = kopSuratUrl || "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgHJHdzvsrvzHVMFsAmI_Ra_4vlYn39plogGMmNIUO7MV71T8zT9YWUFQyO5UD6oeSQ7jew1exTAXcI24JwK3eBiokcmNppHqGjvq70RTfjeYdZAhIahHq0D8m2Jrixl_8bb6BaFGhm0xpov4cojZ_ydeyOtE1xM7wrxn7FSMy0EP5KTuyqWVscaIkCyN3T/s955/KOP%20Baru.png";
     const parentName = siswa.nama_ayah || siswa.nama_ibu || "-";
+
+    const getIndonesianDate = (dateStr: string | null) => {
+      if (!dateStr) return "-";
+      try {
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return dateStr;
+        return d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+      } catch {
+        return dateStr;
+      }
+    };
+
+    const formattedTglKelulusan = getIndonesianDate(tglKelulusanSkl || "2026-06-02");
+
+    const n = siswa.nilai_kelulusan || {};
+    const formatNilaiVal = (key: string) => {
+      const v = n[key];
+      if (v === undefined || v === null || v.trim() === "") return "-";
+      return parseFloat(v.replace(",", ".")).toFixed(2).replace(".", ",");
+    };
+
+    const mapels = [
+      { no: "1.", nama: "Pendidikan Agama dan Budi Pekerti", key: "pai" },
+      { no: "2.", nama: "Pendidikan Pancasila", key: "ppkn" },
+      { no: "3.", nama: "Bahasa Indonesia", key: "indo" },
+      { no: "4.", nama: "Matematika", key: "mtk" },
+      { no: "5.", nama: "Ilmu Pengetahuan Alam dan Sosial", key: "ipas" },
+      { no: "6.", nama: "Seni Budaya dan Prakarya : Seni Rupa", key: "sbdp" },
+      { no: "7.", nama: "Pendidikan Jasmani, Olahraga dan Kesehatan", key: "pjok" },
+      { no: "8.", nama: "Bahasa Inggris", key: "bing" },
+      { no: "9.", nama: `Muatan Lokal : ${namaMulok1 || "Bahasa dan Sastra Sunda"}`, key: "mulok1" },
+    ];
+    if (namaMulok2) {
+      mapels.push({ no: "10.", nama: `Muatan Lokal : ${namaMulok2}`, key: "mulok2" });
+    }
+    if (namaMulok3) {
+      mapels.push({ no: "11.", nama: `Muatan Lokal : ${namaMulok3}`, key: "mulok3" });
+    }
+
+    const mapelRows = mapels.map(m => `
+      <tr>
+        <td class="center">${m.no}</td>
+        <td>${m.nama}</td>
+        <td class="center bold">${formatNilaiVal(m.key)}</td>
+      </tr>
+    `).join("");
+
+    const getAvg = () => {
+      let sum = 0;
+      let count = 0;
+      mapels.forEach(m => {
+        const v = n[m.key];
+        if (v && v.trim() !== "") {
+          const num = parseFloat(v.replace(",", "."));
+          if (!isNaN(num)) {
+            sum += num;
+            count++;
+          }
+        }
+      });
+      return count > 0 ? (sum / count).toFixed(2).replace(".", ",") : "-";
+    };
 
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
     printWindow.document.write(`
       <html><head><title>SKL - ${siswa.nama}</title>
       <style>
-        @page { size: A4 portrait; margin: 15mm; }
-        body { font-family: 'Times New Roman', serif; font-size: 12pt; margin: 0; padding: 20px; background: #eee; }
-        .surat-page { background: white; width: 210mm; min-height: 297mm; margin: 0 auto; padding: 15mm 20mm; box-sizing: border-box; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .kop-surat { text-align: center; margin-bottom: 20px; margin-left: -10mm; margin-right: -10mm; }
-        .kop-surat img { width: 100%; max-height: 150px; object-fit: contain; }
-        .judul-box { text-align: center; margin: 20px 0 30px 0; }
-        .judul-box h2 { margin: 0; font-size: 14pt; text-decoration: underline; font-weight: bold; }
-        .isi-surat { text-align: justify; line-height: 1.6; }
-        .isi-surat table td { padding: 4px 0; vertical-align: top; }
-        .lulus-box { text-align: center; font-size: 16pt; font-weight: bold; margin: 15px 0; border: 2px solid #000; padding: 10px; letter-spacing: 2px; }
-        .footer-box { margin-top: 50px; display: flex; justify-content: space-between; align-items: flex-end; }
-        .qr-box { text-align: center; padding: 8px; border: 1px solid #ddd; border-radius: 8px; }
-        .qr-box p { font-size: 7pt; color: #888; margin: 4px 0 0 0; }
-        .ttd-box { width: 250px; text-align: center; }
-        .ttd-name { font-weight: bold; text-decoration: underline; text-transform: uppercase; }
+        @page { size: A4 portrait; margin: 10mm 15mm; }
+        body { font-family: 'Times New Roman', serif; font-size: 11pt; margin: 0; padding: 20px; background: #eee; color: #000; }
+        .surat-page { background: white; width: 210mm; min-height: 297mm; margin: 0 auto; padding: 10mm 15mm; box-sizing: border-box; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .kop-surat { text-align: center; margin-bottom: 15px; margin-left: -5mm; margin-right: -5mm; }
+        .kop-surat img { width: 100%; max-height: 140px; object-fit: contain; }
+        .judul-box { text-align: center; margin: 15px 0; }
+        .judul-box h2 { margin: 0; font-size: 13pt; text-decoration: underline; font-weight: bold; }
+        .judul-box p { margin: 3px 0 0 0; font-size: 11pt; font-family: 'Courier New', Courier, monospace; font-weight: bold; }
+        .isi-surat { text-align: justify; line-height: 1.4; font-size: 11pt; }
+        .identitas-table { margin-left: 20px; width: 100%; margin-bottom: 10px; }
+        .identitas-table td { padding: 2px 0; vertical-align: top; }
+        .lulus-box { text-align: center; font-size: 14pt; font-weight: bold; margin: 10px 0; border: 1.5px solid #000; padding: 5px; letter-spacing: 2px; }
+        
+        .nilai-table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 10.5pt; }
+        .nilai-table th, .nilai-table td { border: 1px solid black; padding: 4px 8px; }
+        .nilai-table th { text-align: center; background-color: #f2f2f2; }
+        .nilai-table td.center { text-align: center; }
+        .nilai-table td.right { text-align: right; }
+        .nilai-table td.bold { font-weight: bold; }
+        
+        .footer-box { margin-top: 25px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .qr-box { text-align: center; padding: 5px; border: 1px solid #ddd; border-radius: 6px; display: inline-block; }
+        .qr-box p { font-size: 7px; color: #888; margin: 3px 0 0 0; font-family: sans-serif; }
+        .ttd-box { width: 230px; text-align: center; font-size: 11pt; }
+        .ttd-name { font-weight: bold; text-decoration: underline; text-transform: uppercase; margin-top: 60px; }
         .no-print { position: fixed; top: 20px; right: 20px; z-index: 1000; display: flex; gap: 10px; }
         .btn { background: #D4A843; color: white; padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        @media print { body { background: white; padding: 0; } .surat-page { margin: 0; box-shadow: none; } .no-print { display: none !important; } }
+        @media print { body { background: white; padding: 0; } .surat-page { margin: 0; box-shadow: none; padding: 5mm 10mm; } .no-print { display: none !important; } }
       </style></head><body>
         <div class="no-print">
           <button class="btn" onclick="window.print()">🖨️ Cetak Sekarang</button>
           <button class="btn" style="background:#64748b" onclick="window.close()">Tutup</button>
         </div>
         <div class="surat-page">
-          <div class="kop-surat"><img src="${kopUrl}" alt="KOP" /></div>
-          <div class="judul-box"><h2>SURAT KETERANGAN LULUS</h2></div>
-          <div class="isi-surat">
-            <p>Yang bertanda tangan di bawah ini Kepala ${schoolName}, menerangkan dengan sebenarnya bahwa:</p>
-            <table style="margin-left:20px;width:100%">
-              <tr><td width="35%">Nama Lengkap</td><td width="2%">:</td><td style="font-weight:bold;text-transform:uppercase">${siswa.nama}</td></tr>
-              <tr><td>Tempat, Tanggal Lahir</td><td>:</td><td>${siswa.tempat_lahir || "-"}, ${tglLahirFormatted}</td></tr>
-              <tr><td>NIS / NISN</td><td>:</td><td>${siswa.nis || "-"} / <b>${siswa.nisn}</b></td></tr>
-              <tr><td>Nama Orang Tua/Wali</td><td>:</td><td>${parentName}</td></tr>
-            </table>
-            <p>Berdasarkan hasil Asesmen Sumatif Akhir Jenjang dan Rapat Dewan Guru, siswa tersebut dinyatakan:</p>
-            <div class="lulus-box">L U L U S</div>
-            <p>Dari ${schoolName} Tahun Pelajaran <b>${SCHOOL.tahunAjaran}</b>.</p>
-            <p>Surat Keterangan Lulus (SKL) ini bersifat sementara dan dapat digunakan untuk keperluan pendaftaran ke jenjang pendidikan selanjutnya (SMP/MTs sederajat) sampai Ijazah asli diterbitkan.</p>
+          <div class="kop-surat"><img src="${currentKopUrl}" alt="KOP" /></div>
+          <div class="judul-box">
+            <h2>SURAT KETERANGAN KELULUSAN</h2>
+            <p>Nomor: ${siswa.nomor_skl || "....../......./Sket-SD/VI/2026"}</p>
           </div>
+          <div class="isi-surat">
+            <p>Yang bertanda tangan di bawah ini Kepala ${schoolName}, menerangkan bahwa:</p>
+            <table class="identitas-table">
+              <tr><td width="35%">Nama</td><td width="2%">:</td><td style="font-weight:bold;text-transform:uppercase">${siswa.nama}</td></tr>
+              <tr><td>Tempat, Tanggal Lahir</td><td>:</td><td>${siswa.tempat_lahir || "-"}, ${tglLahirFormatted}</td></tr>
+              <tr><td>Nama Orang Tua/Wali</td><td>:</td><td>${parentName}</td></tr>
+              <tr><td>Nomor Induk Siswa</td><td>:</td><td>${siswa.nis || "-"}</td></tr>
+              <tr><td>Nomor Induk Siswa Nasional</td><td>:</td><td><b>${siswa.nisn}</b></td></tr>
+            </table>
+            
+            <div style="text-align: center; font-weight: bold; font-style: italic; margin-top: 10px; font-size: 13pt;">L U L U S</div>
+            
+            <p>dari ${schoolName} pada tanggal ${formattedTglKelulusan}, setelah memenuhi kriteria sesuai dengan peraturan perundang-undangan dengan nilai sebagai berikut:</p>
+            
+            <table class="nilai-table">
+              <thead>
+                <tr>
+                  <th style="width: 8%;">No</th>
+                  <th style="width: 62%;">Mata Pelajaran</th>
+                  <th style="width: 30%;">Nilai</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${mapelRows}
+                <tr style="background-color: #f9f9f9;">
+                  <td colspan="2" class="center bold">Rata - Rata</td>
+                  <td class="center bold" style="font-size: 11.5pt;">${getAvg()}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
           <div class="footer-box">
             <div class="qr-box">${qrSvg}<p>Scan untuk verifikasi</p></div>
             <div class="ttd-box">
-              <p>Cibadak, ${tglCetak}</p>
+              <p>Kab. Sukabumi, ${formattedTglKelulusan}</p>
               <p>Kepala Sekolah,</p>
-              <div style="height:70px"></div>
               <div class="ttd-name">${namaKepsek || "___________________"}</div>
               <div>NIP. ${nipKepsek || "___________________"}</div>
             </div>

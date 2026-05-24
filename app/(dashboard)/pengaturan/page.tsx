@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import {
@@ -134,11 +134,27 @@ export default function PengaturanPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
+      const payload = {
+        nama_sekolah: form.nama_sekolah,
+        npsn: form.npsn || null,
+        alamat_sekolah: form.alamat_sekolah || null,
+        nama_kepsek: form.nama_kepsek,
+        nip_kepsek: form.nip_kepsek,
+        logo_url: form.logo_url || null,
+        kop_surat_url: form.kop_surat_url || null,
+        ttd_url: form.ttd_url || null,
+        stempel_url: form.stempel_url || null,
+        gas_web_app_url: form.gas_web_app_url || null,
+        tahun_ajaran: form.tahun_ajaran || "2025/2026",
+        lat_sekolah: form.lat_sekolah || null,
+        lng_sekolah: form.lng_sekolah || null,
+      };
+
       if (form.id) {
-        const { error } = await supabase.from("pengaturan").update(form).eq("id", form.id);
+        const { error } = await supabase.from("pengaturan").update(payload).eq("id", form.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("pengaturan").insert(form);
+        const { error } = await supabase.from("pengaturan").insert(payload);
         if (error) throw error;
       }
       toast.success("Pengaturan berhasil disimpan!");
