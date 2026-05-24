@@ -357,19 +357,19 @@ export default function ESklPage() {
                 })()}
               </span>
             </div>
-            <div className="max-h-[220px] overflow-y-auto divide-y divide-white/[0.03]">
+            <div className="max-h-[250px] overflow-y-auto divide-y divide-white/[0.03]">
               {[
-                { label: "Pendidikan Agama", key: "pai" },
-                { label: "Pendidikan Pancasila (PPKn)", key: "ppkn" },
+                { label: "Pendidikan Agama dan Budi Pekerti", key: "pai" },
+                { label: "Pendidikan Pancasila", key: "ppkn" },
                 { label: "Bahasa Indonesia", key: "indo" },
                 { label: "Matematika", key: "mtk" },
-                { label: "Ilmu Pengetahuan Alam (IPA)", key: "ipa" },
-                { label: "Ilmu Pengetahuan Sosial (IPS)", key: "ips" },
-                { label: "Seni Budaya & Prakarya", key: "sbdp" },
-                { label: "PJOK", key: "pjok" },
-                { label: data.nama_mulok1 || "Bahasa Sunda", key: "mulok1" },
-                ...(data.nama_mulok2 ? [{ label: data.nama_mulok2, key: "mulok2" }] : []),
-                ...(data.nama_mulok3 ? [{ label: data.nama_mulok3, key: "mulok3" }] : []),
+                { label: "Ilmu Pengetahuan Alam dan Sosial (IPAS)", key: "ipas" },
+                { label: "Seni Budaya dan Prakarya : Seni Rupa", key: "sbdp" },
+                { label: "Pendidikan Jasmani, Olahraga & Kesehatan", key: "pjok" },
+                { label: "Bahasa Inggris", key: "bing" },
+                { label: `Muatan Lokal : ${data.nama_mulok1 || "Bahasa Sunda"}`, key: "mulok1" },
+                ...(data.nama_mulok2 ? [{ label: `Muatan Lokal : ${data.nama_mulok2}`, key: "mulok2" }] : []),
+                ...(data.nama_mulok3 ? [{ label: `Muatan Lokal : ${data.nama_mulok3}`, key: "mulok3" }] : []),
               ].map(subj => {
                 const val = siswa.nilai_kelulusan?.[subj.key];
                 const formatted = val ? parseFloat(val).toFixed(2).replace(".", ",") : "—";
