@@ -543,6 +543,10 @@ export default function KelulusanPage() {
               <p className="text-xs text-white/35 mt-1">Klik tombol edit untuk menginput nilai & nomor SKL</p>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
+              <button onClick={() => window.open("/portal/kelulusan/skl/bulk", "_blank")} disabled={saving || stats.lulus === 0}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-sky-400 bg-sky-500/10 border border-sky-500/20 hover:bg-sky-500/20 transition-all disabled:opacity-40">
+                <Printer size={12} /> Cetak Semua SKL
+              </button>
               <button onClick={() => setShowBulkNumberModal(true)} disabled={saving || stats.lulus === 0}
                 className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 transition-all disabled:opacity-40">
                 <Calculator size={12} /> Generate Nomor SKL
@@ -673,7 +677,7 @@ export default function KelulusanPage() {
                           <XCircle size={14} />
                         </button>
                         <button
-                          onClick={() => window.open(`/portal/kelulusan/skl/${s.nisn}`, "_blank")}
+                          onClick={() => window.open(`/portal/kelulusan/skl/${s.nisn}?print=true`, "_blank")}
                           disabled={s.status_kelulusan !== "LULUS"}
                           title={s.status_kelulusan === "LULUS" ? "Cetak SKL" : "Siswa belum lulus"}
                           className={cn(

@@ -37,6 +37,7 @@ export default function PortalKelulusan() {
   const [namaKepsek, setNamaKepsek] = useState<string | null>(null);
   const [nipKepsek, setNipKepsek] = useState<string | null>(null);
   const [namaSekolah, setNamaSekolah] = useState<string | null>(null);
+  const [npsn, setNpsn] = useState<string | null>(null);
   const [kopSuratUrl, setKopSuratUrl] = useState<string | null>(null);
   const [tglKelulusanSkl, setTglKelulusanSkl] = useState<string | null>(null);
   const [namaMulok1, setNamaMulok1] = useState<string | null>(null);
@@ -87,6 +88,7 @@ export default function PortalKelulusan() {
       setNamaKepsek(json.nama_kepsek);
       setNipKepsek(json.nip_kepsek);
       setNamaSekolah(json.nama_sekolah);
+      setNpsn(json.npsn);
       setKopSuratUrl(json.kop_surat_url);
       setTglKelulusanSkl(json.tanggal_kelulusan);
       setNamaMulok1(json.nama_mulok1);
@@ -221,6 +223,7 @@ export default function PortalKelulusan() {
         .kop-surat img { width: 100%; max-height: 140px; object-fit: contain; }
         .judul-box { text-align: center; margin: 15px 0; }
         .judul-box h2 { margin: 0; font-size: 13pt; text-decoration: underline; font-weight: bold; }
+        .judul-box h3 { margin: 3px 0 0 0; font-size: 11pt; font-weight: bold; }
         .judul-box p { margin: 3px 0 0 0; font-size: 11pt; font-family: 'Courier New', Courier, monospace; font-weight: bold; }
         .isi-surat { text-align: justify; line-height: 1.4; font-size: 11pt; }
         .identitas-table { margin-left: 20px; width: 100%; margin-bottom: 10px; }
@@ -251,10 +254,11 @@ export default function PortalKelulusan() {
           <div class="kop-surat"><img src="${currentKopUrl}" alt="KOP" /></div>
           <div class="judul-box">
             <h2>SURAT KETERANGAN KELULUSAN</h2>
+            <h3>Tahun Pelajaran ${SCHOOL.tahunAjaran}</h3>
             <p>Nomor: ${siswa.nomor_skl || "....../......./Sket-SD/VI/2026"}</p>
           </div>
           <div class="isi-surat">
-            <p>Yang bertanda tangan di bawah ini Kepala ${schoolName}, menerangkan bahwa:</p>
+            <p>Yang bertanda tangan di bawah ini, Kepala ${schoolName}, Nomor Pokok Sekolah Nasional ${npsn || SCHOOL.npsn} Kabupaten Sukabumi, menerangkan bahwa :</p>
             <table class="identitas-table">
               <tr><td width="35%">Nama</td><td width="2%">:</td><td style="font-weight:bold;text-transform:uppercase">${siswa.nama}</td></tr>
               <tr><td>Tempat, Tanggal Lahir</td><td>:</td><td>${siswa.tempat_lahir || "-"}, ${tglLahirFormatted}</td></tr>

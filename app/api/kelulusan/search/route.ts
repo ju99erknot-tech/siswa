@@ -78,6 +78,7 @@ export async function POST(req: Request) {
         nama_kepsek: pengaturan?.nama_kepsek || null,
         nip_kepsek: pengaturan?.nip_kepsek || null,
         nama_sekolah: pengaturan?.nama_sekolah || null,
+        npsn: pengaturan?.npsn || null,
         tanggal_kelulusan: pengaturan?.tanggal_kelulusan || null,
         nama_mulok1: pengaturan?.nama_mulok1 || null,
         nama_mulok2: pengaturan?.nama_mulok2 || null,
