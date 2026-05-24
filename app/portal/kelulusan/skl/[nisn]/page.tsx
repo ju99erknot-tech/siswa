@@ -357,7 +357,14 @@ export default function ESklPage() {
           .no-print { position: fixed; top: 20px; right: 20px; z-index: 1000; display: flex; gap: 10px; }
           .btn { background: #D4A843; color: white; padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
           @media print { 
-            html, body, .print-layout-container { background: white !important; background-color: white !important; padding: 0 !important; margin: 0 !important; } 
+            html, html.dark, body, body.dark, .print-layout-container { 
+              background: white !important; 
+              background-color: white !important; 
+              color: #000 !important;
+              color-scheme: light !important;
+              padding: 0 !important; 
+              margin: 0 !important; 
+            } 
             .surat-page { margin: 0 auto !important; box-shadow: none !important; padding: 5mm 10mm !important; } 
             .no-print { display: none !important; } 
           }
