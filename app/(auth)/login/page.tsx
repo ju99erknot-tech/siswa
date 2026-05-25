@@ -238,21 +238,25 @@ function LoginContent() {
           </div>
 
           {/* Footer */}
-          <motion.p
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.9 }}
-            className="text-white/20 text-[11px] font-medium tracking-wider"
+            className="text-white/20 text-[10px] font-medium tracking-wider flex items-center gap-1.5 justify-start select-none"
           >
+            <span>Developed by</span>
             <a
               href="https://ju99erknot.my.id/"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-white/40 transition-colors"
+              className="relative group font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-400 hover:from-violet-300 hover:via-fuchsia-300 hover:to-cyan-300 transition-all duration-300 transform hover:-translate-y-[1px] inline-block"
             >
-              {BRAND.copyright}
+              Ju99erknot
+              <span className="absolute -bottom-0.5 left-0 w-0 h-[1.5px] bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-400 group-hover:w-full transition-all duration-300 ease-out shadow-[0_0_8px_#8b5cf6]" />
             </a>
-          </motion.p>
+            <span className="opacity-30">|</span>
+            <span>© {new Date().getFullYear()}</span>
+          </motion.div>
         </div>
       </motion.div>
 
