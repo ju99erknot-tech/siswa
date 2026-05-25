@@ -25,11 +25,27 @@ function LoginContent() {
   const [showPass, setShowPass] = useState(false)
   const [pengaturan, setPengaturan] = useState<any>(null)
   const [stats, setStats] = useState({ siswa: 0, kelas: 0 })
+  const [captchaNum1, setCaptchaNum1] = useState(0)
+  const [captchaNum2, setCaptchaNum2] = useState(0)
+  const [captchaInput, setCaptchaInput] = useState('')
+
+  const generateCaptcha = () => {
+    setCaptchaNum1(Math.floor(Math.random() * 8) + 2) // 2 to 9
+    setCaptchaNum2(Math.floor(Math.random() * 8) + 2) // 2 to 9
+    setCaptchaInput('')
+  }
 
   useEffect(() => {
     setIsMounted(true)
     fetchData()
+    generateCaptcha()
   }, [])
+
+  useEffect(() => {
+    if (role === 'admin') {
+      generateCaptcha()
+    }
+  }, [role])
 
   const fetchData = async () => {
     const supabase = createClient()
@@ -48,6 +64,17 @@ function LoginContent() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (role === 'admin') {
+      const correctAnswer = captchaNum1 + captchaNum2
+      if (parseInt(captchaInput) !== correctAnswer) {
+        uiSound.playError()
+        toast.error('Jawaban captcha salah! Silakan coba lagi.')
+        generateCaptcha()
+        return
+      }
+    }
+
     setLoading(true)
     try {
       const supabase = createClient()
@@ -351,6 +378,56 @@ function LoginContent() {
                     >
                       {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
+                  </div>
+                </div>
+
+                {/* Captcha Security */}
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <label className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">
+                      Keamanan (Captcha)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={generateCaptcha}
+                      className="text-[11px] font-semibold transition-colors"
+                      style={{ color: '#a78bfa' }}
+                      onMouseEnter={e => (e.currentTarget.style.color = '#c4b5fd')}
+                      onMouseLeave={e => (e.currentTarget.style.color = '#a78bfa')}
+                    >
+                      Ganti Soal
+                    </button>
+                  </div>
+                  <div className="flex gap-3">
+                    <div 
+                      className="flex items-center justify-center px-4 rounded-xl text-sm font-bold select-none text-violet-300 border border-white/5 bg-white/[0.02]"
+                      style={{ minWidth: '100px' }}
+                    >
+                      {captchaNum1} + {captchaNum2} =
+                    </div>
+                    <input
+                      type="number"
+                      required
+                      value={captchaInput}
+                      onChange={(e) => setCaptchaInput(e.target.value)}
+                      placeholder="Hasil penjumlahan"
+                      className="flex-1 h-12 px-4 rounded-xl text-sm placeholder-white/20 outline-none transition-all duration-200"
+                      style={{
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.07)',
+                        color: 'rgba(255,255,255,0.88)',
+                      }}
+                      onFocus={e => {
+                        e.currentTarget.style.borderColor = 'rgba(139,92,246,0.45)'
+                        e.currentTarget.style.background = 'rgba(139,92,246,0.06)'
+                        e.currentTarget.style.boxShadow = '0 0 0 3px rgba(139,92,246,0.12)'
+                      }}
+                      onBlur={e => {
+                        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'
+                        e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+                        e.currentTarget.style.boxShadow = 'none'
+                      }}
+                    />
                   </div>
                 </div>
               </>
