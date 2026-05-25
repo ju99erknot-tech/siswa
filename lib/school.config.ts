@@ -29,7 +29,7 @@ export const BRAND = {
   appName: "Portal Kesiswaan",
   tagline: "Platform digital terpadu untuk manajemen data siswa",
   version: "Aurora v2.0",
-  copyright: `SmartSIAKAD Platform © ${new Date().getFullYear()}`,
+  copyright: `dev Ju99erknot © ${new Date().getFullYear()}`,
 } as const;
 
 // WhatsApp message templates — uses {nama_siswa}, {tanggal}, {kelas_baru}, {nama_kegiatan} placeholders

@@ -244,7 +244,14 @@ function LoginContent() {
             transition={{ delay: 0.9 }}
             className="text-white/20 text-[11px] font-medium tracking-wider"
           >
-            {BRAND.copyright}
+            <a
+              href="https://ju99erknot.my.id/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-white/40 transition-colors"
+            >
+              {BRAND.copyright}
+            </a>
           </motion.p>
         </div>
       </motion.div>
