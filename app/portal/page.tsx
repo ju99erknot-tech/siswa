@@ -75,7 +75,23 @@ export default function PortalOrangTua() {
   const [izinAlasan, setIzinAlasan] = useState<"sakit" | "izin" | "lainnya">("sakit");
   const [izinKeterangan, setIzinKeterangan] = useState("");
   const [scrolled, setScrolled] = useState(false);
+  const [pengaturan, setPengaturan] = useState<any>(null);
   const router = useRouter();
+
+  const schoolName = pengaturan?.nama_sekolah || SCHOOL.nama;
+  const schoolAddress = pengaturan?.alamat_sekolah || SCHOOL.alamat;
+  const schoolNpsn = pengaturan?.npsn || SCHOOL.npsn;
+  const schoolTahunAjaran = pengaturan?.tahun_ajaran || SCHOOL.tahunAjaran;
+  const schoolKota = (() => {
+    if (!pengaturan?.alamat_sekolah) return SCHOOL.kota;
+    const parts = pengaturan.alamat_sekolah.split(",").map((s: string) => s.trim());
+    const found = parts.find((s: string) => 
+      s.toLowerCase().startsWith("kab.") || 
+      s.toLowerCase().startsWith("kec.") || 
+      s.toLowerCase().startsWith("kota")
+    );
+    return found || SCHOOL.kota;
+  })();
 
   const switchTab = (tab: string) => {
     setActiveTab(tab);
@@ -138,7 +154,7 @@ export default function PortalOrangTua() {
         setSiswa(siswaData);
 
         // Fetch related data using actual siswa nisn/nama
-        const [prestasiRes, mMasukRes, mKeluarRes, absensiRes] =
+        const [prestasiRes, mMasukRes, mKeluarRes, absensiRes, settingsRes] =
           await Promise.all([
             supabase
               .from("prestasi")
@@ -162,7 +178,15 @@ export default function PortalOrangTua() {
               .eq("siswa_id", targetId)
               .order("tanggal", { ascending: false })
               .limit(120),
+            supabase
+              .from("pengaturan")
+              .select("*")
+              .maybeSingle(),
           ]);
+
+        if (settingsRes.data) {
+          setPengaturan(settingsRes.data);
+        }
 
         // Fetch status kehadiran hari ini
         const today = new Date().toISOString().split("T")[0];
@@ -279,7 +303,7 @@ export default function PortalOrangTua() {
               {BRAND.appName}
             </h2>
             <p className="text-[10px] text-white/40 font-bold tracking-[0.2em] mt-0.5 uppercase">
-              {SCHOOL.nama}
+              {schoolName}
             </p>
           </div>
         </div>
@@ -611,7 +635,7 @@ export default function PortalOrangTua() {
                 Akademik
               </h2>
               <p className="text-xs text-white/40">
-                {SCHOOL.nama} — {SCHOOL.tahunAjaran}
+                {schoolName} — {schoolTahunAjaran}
               </p>
             </section>
 
@@ -883,7 +907,7 @@ export default function PortalOrangTua() {
                 </div>
                 <div>
                   <h3 className="text-sm font-black text-white/90">Rapor Mini</h3>
-                  <p className="text-[10px] text-white/40 mt-0.5">Ringkasan pencapaian Ananda {SCHOOL.tahunAjaran}</p>
+                  <p className="text-[10px] text-white/40 mt-0.5">Ringkasan pencapaian Ananda {schoolTahunAjaran}</p>
                 </div>
               </div>
 
@@ -900,7 +924,7 @@ export default function PortalOrangTua() {
                   <div>
                     <p className="text-sm font-black text-white/90">{siswa.nama}</p>
                     <p className="text-[10px] text-white/40 mt-0.5">NISN: {siswa.nisn} • Kelas {siswa.kelas || "-"}</p>
-                    <p className="text-[10px] text-violet-400/70 font-bold mt-0.5">{SCHOOL.nama} • {SCHOOL.tahunAjaran} ({SCHOOL.semester})</p>
+                    <p className="text-[10px] text-violet-400/70 font-bold mt-0.5">{schoolName} • {schoolTahunAjaran} ({SCHOOL.semester})</p>
                   </div>
                 </div>
               </div>
@@ -972,7 +996,7 @@ export default function PortalOrangTua() {
                     : `<tr><td colspan="4" style="padding:16px;border:1px solid #e2e8f0;text-align:center;color:#94a3b8">Belum ada prestasi tercatat</td></tr>`;
                   const w = window.open("", "_blank");
                   if (!w) return;
-                  w.document.write(`<!DOCTYPE html><html><head><title>Rapor Mini - ${siswa.nama}</title><style>body{font-family:'Segoe UI',Tahoma,sans-serif;margin:0;padding:40px;color:#1e293b;line-height:1.6}.header{text-align:center;border-bottom:3px double #334155;padding-bottom:16px;margin-bottom:24px}.header h1{margin:0;font-size:16px;text-transform:uppercase;letter-spacing:2px}.header p{margin:4px 0 0;font-size:12px;color:#64748b}.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:24px;font-size:13px}.info-grid div{display:flex}.info-grid .label{width:120px;font-weight:600;color:#475569}table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}th{background:#f1f5f9;padding:8px;border:1px solid #e2e8f0;text-align:left;font-weight:600}.section-title{font-size:14px;font-weight:700;margin:20px 0 8px;color:#334155;border-left:4px solid #8b5cf6;padding-left:8px}.progress-bar{height:16px;background:#e2e8f0;border-radius:99px;overflow:hidden;margin:8px 0}.progress-fill{height:100%;background:linear-gradient(90deg,#34d399,#22d3ee);border-radius:99px}.footer{margin-top:40px;font-size:11px;color:#94a3b8;text-align:center;border-top:1px solid #e2e8f0;padding-top:16px}@media print{body{padding:20px}}</style></head><body><div class="header"><h1>${SCHOOL.nama}</h1><p>${SCHOOL.alamat}</p><p style="margin-top:12px;font-size:14px;font-weight:700;color:#334155">RAPOR MINI SISWA</p><p>Tahun Ajaran ${SCHOOL.tahunAjaran} — Semester ${SCHOOL.semester}</p></div><div class="info-grid"><div><span class="label">Nama</span>: ${siswa.nama}</div><div><span class="label">NISN</span>: ${siswa.nisn}</div><div><span class="label">Kelas</span>: ${siswa.kelas || "-"}</div><div><span class="label">Jenis Kelamin</span>: ${siswa.jk === "L" ? "Laki-laki" : "Perempuan"}</div></div><div class="section-title">Rekap Kehadiran</div><div class="progress-bar"><div class="progress-fill" style="width:${hadirPct}%"></div></div><p style="font-size:12px;color:#64748b">Tingkat kehadiran: <strong>${hadirPct}%</strong></p><table><tr><th>Hadir</th><th>Sakit</th><th>Izin</th><th>Alpha</th><th>Total</th></tr><tr><td style="padding:8px;border:1px solid #e2e8f0;text-align:center;color:#059669;font-weight:700">${absensi.hadir}</td><td style="padding:8px;border:1px solid #e2e8f0;text-align:center;color:#d97706;font-weight:700">${absensi.sakit}</td><td style="padding:8px;border:1px solid #e2e8f0;text-align:center;color:#2563eb;font-weight:700">${absensi.izin}</td><td style="padding:8px;border:1px solid #e2e8f0;text-align:center;color:#dc2626;font-weight:700">${absensi.alpha}</td><td style="padding:8px;border:1px solid #e2e8f0;text-align:center;font-weight:700">${absensi.total}</td></tr></table><div class="section-title">Prestasi</div><table><tr><th style="width:40px;text-align:center">No</th><th>Jenis Lomba</th><th style="text-align:center">Peringkat</th><th style="text-align:center">Tingkat</th></tr>${prestasiRows}</table><div class="footer"><p>Dicetak dari Portal ${BRAND.appName} - ${SCHOOL.nama}</p><p>Tanggal cetak: ${new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</p></div></body></html>`);
+                  w.document.write(`<!DOCTYPE html><html><head><title>Rapor Mini - ${siswa.nama}</title><style>body{font-family:'Segoe UI',Tahoma,sans-serif;margin:0;padding:40px;color:#1e293b;line-height:1.6}.header{text-align:center;border-bottom:3px double #334155;padding-bottom:16px;margin-bottom:24px}.header h1{margin:0;font-size:16px;text-transform:uppercase;letter-spacing:2px}.header p{margin:4px 0 0;font-size:12px;color:#64748b}.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:24px;font-size:13px}.info-grid div{display:flex}.info-grid .label{width:120px;font-weight:600;color:#475569}table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}th{background:#f1f5f9;padding:8px;border:1px solid #e2e8f0;text-align:left;font-weight:600}.section-title{font-size:14px;font-weight:700;margin:20px 0 8px;color:#334155;border-left:4px solid #8b5cf6;padding-left:8px}.progress-bar{height:16px;background:#e2e8f0;border-radius:99px;overflow:hidden;margin:8px 0}.progress-fill{height:100%;background:linear-gradient(90deg,#34d399,#22d3ee);border-radius:99px}.footer{margin-top:40px;font-size:11px;color:#94a3b8;text-align:center;border-top:1px solid #e2e8f0;padding-top:16px}@media print{body{padding:20px}}</style></head><body><div class="header"><h1>${schoolName}</h1><p>${schoolAddress}</p><p style="margin-top:12px;font-size:14px;font-weight:700;color:#334155">RAPOR MINI SISWA</p><p>Tahun Ajaran ${schoolTahunAjaran} — Semester ${SCHOOL.semester}</p></div><div class="info-grid"><div><span class="label">Nama</span>: ${siswa.nama}</div><div><span class="label">NISN</span>: ${siswa.nisn}</div><div><span class="label">Kelas</span>: ${siswa.kelas || "-"}</div><div><span class="label">Jenis Kelamin</span>: ${siswa.jk === "L" ? "Laki-laki" : "Perempuan"}</div></div><div class="section-title">Rekap Kehadiran</div><div class="progress-bar"><div class="progress-fill" style="width:${hadirPct}%"></div></div><p style="font-size:12px;color:#64748b">Tingkat kehadiran: <strong>${hadirPct}%</strong></p><table><tr><th>Hadir</th><th>Sakit</th><th>Izin</th><th>Alpha</th><th>Total</th></tr><tr><td style="padding:8px;border:1px solid #e2e8f0;text-align:center;color:#059669;font-weight:700">${absensi.hadir}</td><td style="padding:8px;border:1px solid #e2e8f0;text-align:center;color:#d97706;font-weight:700">${absensi.sakit}</td><td style="padding:8px;border:1px solid #e2e8f0;text-align:center;color:#2563eb;font-weight:700">${absensi.izin}</td><td style="padding:8px;border:1px solid #e2e8f0;text-align:center;color:#dc2626;font-weight:700">${absensi.alpha}</td><td style="padding:8px;border:1px solid #e2e8f0;text-align:center;font-weight:700">${absensi.total}</td></tr></table><div class="section-title">Prestasi</div><table><tr><th style="width:40px;text-align:center">No</th><th>Jenis Lomba</th><th style="text-align:center">Peringkat</th><th style="text-align:center">Tingkat</th></tr>${prestasiRows}</table><div class="footer"><p>Dicetak dari Portal ${BRAND.appName} - ${schoolName}</p><p>Tanggal cetak: ${new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</p></div></body></html>`);
                   w.document.close();
                   w.print();
                 }}
@@ -1577,8 +1601,8 @@ export default function PortalOrangTua() {
                       </head>
                       <body>
                         <div class="header">
-                          <h1>${SCHOOL.nama}</h1>
-                          <p>${SCHOOL.alamat}</p>
+                          <h1>${schoolName}</h1>
+                          <p>${schoolAddress}</p>
                           <p>Telepon: ${SCHOOL.telepon || "-"} | Email: ${SCHOOL.email || "-"}</p>
                         </div>
                         
@@ -1602,7 +1626,7 @@ export default function PortalOrangTua() {
                             </tr>
                             <tr>
                               <td class="label">Sekolah</td>
-                              <td>: ${SCHOOL.nama}</td>
+                              <td>: ${schoolName}</td>
                             </tr>
                           </table>
 
@@ -1620,7 +1644,7 @@ export default function PortalOrangTua() {
                           </div>
                           
                           <div class="signature-box">
-                            <p>${SCHOOL.kota || "Surakarta"}, ${new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</p>
+                            <p>${schoolKota}, ${new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</p>
                             <p>Hormat Kami, Orang Tua/Wali</p>
                             <div class="signature-space"></div>
                             <p style="border-bottom: 1px solid #000; display: inline-block; min-width: 150px;">( .................................... )</p>
