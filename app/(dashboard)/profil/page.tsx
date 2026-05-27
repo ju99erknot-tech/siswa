@@ -39,45 +39,25 @@ function ProfilContent() {
 
   // States for Login Activity
   const [isLoggingOutOthers, setIsLoggingOutOthers] = useState(false);
-  const [otherSessions, setOtherSessions] = useState([
-    {
-      id: "1",
-      device: "Mobile",
-      os: "Android",
-      browser: "Chrome",
-      location: "Sukabumi, Jawa Barat",
-      ip: "114.79.12.8",
-      time: "2 jam yang lalu",
-      status: "active"
-    },
-    {
-      id: "2",
-      device: "Mobile",
-      os: "iOS",
-      browser: "Safari",
-      location: "Jakarta, DKI Jakarta",
-      ip: "182.253.10.99",
-      time: "3 hari yang lalu",
-      status: "expired"
-    },
-    {
-      id: "3",
-      device: "Desktop",
-      os: "Windows",
-      browser: "Edge",
-      location: "Bandung, Jawa Barat",
-      ip: "103.10.88.54",
-      time: "7 hari yang lalu",
-      status: "expired"
-    }
-  ]);
+  const [sessions, setSessions] = useState<any[]>([]);
+  const [isLoadingSessions, setIsLoadingSessions] = useState(true);
 
-  const [clientInfo, setClientInfo] = useState({
-    os: "Windows",
-    browser: "Chrome",
-    ip: "182.253.119.42",
-    device: "Desktop"
-  });
+  const fetchSessions = async () => {
+    setIsLoadingSessions(true);
+    try {
+      const res = await fetch("/api/auth/log-activity");
+      if (!res.ok) throw new Error("Gagal mengambil data sesi");
+      const data = await res.json();
+      if (data.success) {
+        setSessions(data.logs || []);
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Gagal memuat riwayat aktivitas");
+    } finally {
+      setIsLoadingSessions(false);
+    }
+  };
 
   useEffect(() => {
     if (tabParam === "aktivitas") {
@@ -92,26 +72,37 @@ function ProfilContent() {
   }, [user?.name]);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const ua = window.navigator.userAgent;
-      let os = "Windows";
-      let device = "Desktop";
-      let browser = "Chrome";
-      
-      if (/Mac/i.test(ua)) os = "MacOS";
-      else if (/Linux/i.test(ua)) os = "Linux";
-      else if (/Android/i.test(ua)) { os = "Android"; device = "Mobile"; }
-      else if (/iPhone|iPad/i.test(ua)) { os = "iOS"; device = "Mobile"; }
-      
-      if (/Firefox/i.test(ua)) browser = "Firefox";
-      else if (/Safari/i.test(ua) && !/Chrome/i.test(ua)) browser = "Safari";
-      else if (/Edg/i.test(ua)) browser = "Edge";
-      
-      const ip = "182.253." + Math.floor(Math.random() * 254 + 1) + "." + Math.floor(Math.random() * 254 + 1);
-      
-      setClientInfo({ os, browser, ip, device });
+    if (activeTab === "aktivitas") {
+      fetchSessions();
     }
-  }, []);
+  }, [activeTab]);
+
+  const formatRelativeTime = (dateStr: string) => {
+    try {
+      const now = new Date();
+      const date = new Date(dateStr);
+      const diffMs = now.getTime() - date.getTime();
+      const diffMins = Math.floor(diffMs / (60 * 1000));
+      const diffHours = Math.floor(diffMs / (60 * 60 * 1000));
+      const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+
+      if (diffMins < 1) return "Baru saja";
+      if (diffMins < 60) return `${diffMins} menit yang lalu`;
+      if (diffHours < 24) return `${diffHours} jam yang lalu`;
+      if (diffDays === 1) return "Kemarin";
+      if (diffDays < 7) return `${diffDays} hari yang lalu`;
+      
+      return date.toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    } catch {
+      return "Baru saja";
+    }
+  };
 
   if (!user) return null;
 
@@ -165,13 +156,22 @@ function ProfilContent() {
     }
   };
 
-  const handleLogoutOthers = () => {
+  const handleLogoutOthers = async () => {
     setIsLoggingOutOthers(true);
-    setTimeout(() => {
-      setOtherSessions(prev => prev.map(s => ({ ...s, status: "expired" })));
-      setIsLoggingOutOthers(false);
+    try {
+      const res = await fetch("/api/auth/log-activity", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "logout_others" })
+      });
+      if (!res.ok) throw new Error("Gagal mengakhiri sesi lain");
       toast.success("Berhasil keluar dari semua sesi lainnya!");
-    }, 1500);
+      fetchSessions();
+    } catch (err: any) {
+      toast.error(err.message || "Gagal mengakhiri sesi");
+    } finally {
+      setIsLoggingOutOthers(false);
+    }
   };
 
   return (
@@ -365,29 +365,41 @@ function ProfilContent() {
               subtitle="Perangkat yang Anda gunakan saat ini untuk mengakses sistem"
             />
             <div className="p-5">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-emerald-500/[0.03] border border-emerald-500/10">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-                    {clientInfo.device === "Desktop" ? <Monitor size={22} /> : <Smartphone size={22} />}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-bold text-white text-sm">
-                        {clientInfo.os} • {clientInfo.browser}
-                      </h4>
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 animate-pulse">
-                        Sesi Aktif
-                      </span>
-                    </div>
-                    <p className="text-xs text-white/40 mt-1 font-mono flex items-center gap-1.5">
-                      <Globe size={11} /> {clientInfo.ip} • Sukabumi, Jawa Barat
-                    </p>
-                    <p className="text-[10px] text-white/30 mt-1 flex items-center gap-1">
-                      <Clock size={10} /> Aktif Sekarang
-                    </p>
+              {isLoadingSessions ? (
+                <div className="flex items-center gap-4 p-4 rounded-2xl bg-emerald-500/[0.03] border border-emerald-500/10 animate-pulse">
+                  <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/5" />
+                  <div className="space-y-2">
+                    <div className="h-4 w-36 bg-white/10 rounded" />
+                    <div className="h-3 w-48 bg-white/5 rounded" />
                   </div>
                 </div>
-              </div>
+              ) : sessions[0] ? (
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-emerald-500/[0.03] border border-emerald-500/10">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                      {sessions[0].device === "Desktop" ? <Monitor size={22} /> : <Smartphone size={22} />}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-bold text-white text-sm">
+                          {sessions[0].os} • {sessions[0].browser}
+                        </h4>
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 animate-pulse">
+                          Sesi Aktif Saat Ini
+                        </span>
+                      </div>
+                      <p className="text-xs text-white/40 mt-1 font-mono flex items-center gap-1.5">
+                        <Globe size={11} /> {sessions[0].ip_address} • {sessions[0].location}
+                      </p>
+                      <p className="text-[10px] text-white/30 mt-1 flex items-center gap-1">
+                        <Clock size={10} /> Aktif Sekarang
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs text-white/40 italic">Tidak ada sesi aktif terdeteksi.</p>
+              )}
             </div>
           </PageCard>
 
@@ -396,11 +408,11 @@ function ProfilContent() {
             <div className="px-6 py-4 border-b border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h3 className="font-bold text-white text-sm flex items-center gap-2">
-                  <Laptop className="w-4 h-4 text-violet-400" /> Riwayat Aktivitas & Sesi Lain
+                  <Laptop className="w-4 h-4 text-violet-400" /> Riwayat Sesi & Aktivitas Lain
                 </h3>
                 <p className="text-xs text-white/35 mt-1">Daftar sesi masuk yang tercatat pada akun Anda</p>
               </div>
-              {otherSessions.some(s => s.status === "active") && (
+              {!isLoadingSessions && sessions.slice(1).some(s => s.status === "active") && (
                 <button
                   onClick={handleLogoutOthers}
                   disabled={isLoggingOutOthers}
@@ -413,52 +425,73 @@ function ProfilContent() {
             </div>
 
             <div className="p-5">
-              <div className="space-y-3">
-                {otherSessions.map((session) => (
-                  <div
-                    key={session.id}
-                    className={cn(
-                      "flex items-start justify-between gap-4 p-4 rounded-xl transition-colors border",
-                      session.status === "active"
-                        ? "bg-white/[0.02] border-white/5"
-                        : "bg-black/20 border-white/[0.02] opacity-60"
-                    )}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className={cn(
-                        "w-10 h-10 rounded-lg flex items-center justify-center border",
+              {isLoadingSessions ? (
+                <div className="space-y-3 animate-pulse">
+                  {[1, 2].map((i) => (
+                    <div key={i} className="flex items-center justify-between p-4 rounded-xl border border-white/5 bg-white/[0.02]">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-white/5 border border-white/5" />
+                        <div className="space-y-2">
+                          <div className="h-3 w-32 bg-white/10 rounded" />
+                          <div className="h-2.5 w-48 bg-white/5 rounded" />
+                        </div>
+                      </div>
+                      <div className="h-5 w-12 bg-white/10 rounded-lg" />
+                    </div>
+                  ))}
+                </div>
+              ) : sessions.slice(1).length === 0 ? (
+                <div className="text-center py-6">
+                  <p className="text-xs text-white/30">Tidak ada riwayat sesi login lainnya.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {sessions.slice(1).map((session) => (
+                    <div
+                      key={session.id}
+                      className={cn(
+                        "flex items-start justify-between gap-4 p-4 rounded-xl transition-colors border",
                         session.status === "active"
-                          ? "bg-violet-500/10 border-violet-500/20 text-violet-400"
-                          : "bg-white/5 border-white/5 text-white/30"
-                      )}>
-                        {session.device === "Desktop" ? <Monitor size={18} /> : <Smartphone size={18} />}
+                          ? "bg-white/[0.02] border-white/5"
+                          : "bg-black/20 border-white/[0.02] opacity-60"
+                      )}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={cn(
+                          "w-10 h-10 rounded-lg flex items-center justify-center border",
+                          session.status === "active"
+                            ? "bg-violet-500/10 border-violet-500/20 text-violet-400"
+                            : "bg-white/5 border-white/5 text-white/30"
+                        )}>
+                          {session.device === "Desktop" ? <Monitor size={18} /> : <Smartphone size={18} />}
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-white/80">
+                            {session.os} • {session.browser}
+                          </p>
+                          <p className="text-[10px] text-white/35 mt-1 font-mono flex items-center gap-1">
+                            <Globe size={10} /> {session.ip_address} • {session.location}
+                          </p>
+                          <p className="text-[10px] text-white/30 mt-1 flex items-center gap-1">
+                            <Clock size={9} /> {formatRelativeTime(session.created_at)}
+                          </p>
+                        </div>
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-white/80">
-                          {session.os} • {session.browser}
-                        </p>
-                        <p className="text-[10px] text-white/35 mt-1 font-mono flex items-center gap-1">
-                          <Globe size={10} /> {session.ip} • {session.location}
-                        </p>
-                        <p className="text-[10px] text-white/30 mt-1 flex items-center gap-1">
-                          <Clock size={9} /> {session.time}
-                        </p>
+                        {session.status === "active" ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[9px] font-bold text-violet-400 bg-violet-500/10 border border-violet-500/20">
+                            Aktif
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[9px] font-bold text-white/20 bg-white/5 border border-white/5">
+                            Sesi Berakhir
+                          </span>
+                        )}
                       </div>
                     </div>
-                    <div>
-                      {session.status === "active" ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[9px] font-bold text-violet-400 bg-violet-500/10 border border-violet-500/20">
-                          Aktif
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[9px] font-bold text-white/20 bg-white/5 border border-white/5">
-                          Sesi Berakhir
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </PageCard>
 

@@ -29,7 +29,21 @@ export default function StoreInitializer({
 
   // Sync auth & pengaturan from server
   useEffect(() => {
-    if (user) setUser(user);
+    if (user) {
+      setUser(user);
+      
+      // Log login activity for the session if not already logged in sessionStorage
+      const sessionKey = `login_logged_${user.id}`;
+      if (typeof window !== "undefined" && !sessionStorage.getItem(sessionKey)) {
+        fetch("/api/auth/log-activity", { method: "POST" })
+          .then((res) => {
+            if (res.ok) {
+              sessionStorage.setItem(sessionKey, "true");
+            }
+          })
+          .catch((err) => console.error("Error logging activity on mount:", err));
+      }
+    }
     if (pengaturan) setPengaturan(pengaturan);
   }, [user, pengaturan, setUser, setPengaturan]);
 
