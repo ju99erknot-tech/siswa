@@ -26,6 +26,11 @@ import {
   FileBarChart,
   Eye,
   FileText,
+  Printer,
+  Send,
+  FileCheck,
+  ClipboardList,
+  AlertCircle,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
@@ -64,6 +69,11 @@ export default function PortalOrangTua() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("home");
   const [showPass, setShowPass] = useState(false);
+  const [showIzinModal, setShowIzinModal] = useState(false);
+  const [izinTglMulai, setIzinTglMulai] = useState("");
+  const [izinTglSelesai, setIzinTglSelesai] = useState("");
+  const [izinAlasan, setIzinAlasan] = useState<"sakit" | "izin" | "lainnya">("sakit");
+  const [izinKeterangan, setIzinKeterangan] = useState("");
   const [scrolled, setScrolled] = useState(false);
   const router = useRouter();
 
@@ -480,25 +490,19 @@ export default function PortalOrangTua() {
                   icon={Calendar}
                   label="Izin"
                   color="#fb7185"
-                  onClick={() =>
-                    toast.info("Fitur Surat Izin akan segera tersedia")
-                  }
+                  onClick={() => setShowIzinModal(true)}
                 />
                 <ActionButton
-                  icon={Wallet}
-                  label="Bayar"
+                  icon={ClipboardList}
+                  label="Surat"
                   color="#60a5fa"
-                  onClick={() =>
-                    toast.info("Fitur Pembayaran akan segera tersedia")
-                  }
+                  onClick={() => switchTab("surat")}
                 />
                 <ActionButton
                   icon={BookOpen}
                   label="Rapor"
                   color="#a78bfa"
-                  onClick={() =>
-                    toast.info("Fitur Lihat Rapor akan segera tersedia")
-                  }
+                  onClick={() => switchTab("surat")}
                 />
                 <ActionButton
                   icon={MessageSquare}
@@ -520,6 +524,41 @@ export default function PortalOrangTua() {
                 Update Terbaru
               </h3>
               <div className="space-y-3">
+                {/* Status kehadiran hari ini */}
+                {todayStatus && (
+                  <TimelineItem
+                    icon={MapPin}
+                    title={
+                      todayStatus === "H" ? "Hadir di Sekolah" :
+                      todayStatus === "S" ? "Sakit Hari Ini" :
+                      todayStatus === "I" ? "Izin Hari Ini" :
+                      todayStatus === "A" ? "Tidak Hadir (Alpha)" : "—"
+                    }
+                    time={new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long" })}
+                    desc={
+                      todayStatus === "H" ? "Ananda tercatat hadir di sekolah hari ini." :
+                      todayStatus === "S" ? "Ananda tidak hadir karena sakit." :
+                      todayStatus === "I" ? "Ananda tidak hadir karena izin." :
+                      "Ananda tidak hadir tanpa keterangan hari ini."
+                    }
+                    color={
+                      todayStatus === "H" ? "#34d399" :
+                      todayStatus === "S" ? "#fbbf24" :
+                      todayStatus === "I" ? "#60a5fa" : "#f43f5e"
+                    }
+                  />
+                )}
+                {/* Mutasi info */}
+                {mutasi && (
+                  <TimelineItem
+                    icon={AlertCircle}
+                    title="Info Mutasi"
+                    time="Data siswa"
+                    desc={`Ananda tercatat memiliki riwayat mutasi. Silakan periksa detail di halaman profil.`}
+                    color="#c084fc"
+                  />
+                )}
+                {/* Prestasi */}
                 {prestasi.length > 0 ? (
                   prestasi
                     .slice(0, 3)
@@ -546,7 +585,7 @@ export default function PortalOrangTua() {
                     icon={Activity}
                     title={`${absensi.sakit}x Sakit`}
                     time="Periode ini"
-                    desc={`Siswa tercatat ${absensi.sakit} kali sakit periode ini.`}
+                    desc={`Ananda tercatat ${absensi.sakit} kali sakit periode ini.`}
                     color="#f59e0b"
                   />
                 )}
@@ -555,7 +594,7 @@ export default function PortalOrangTua() {
                     icon={Activity}
                     title={`${absensi.alpha}x Alpha`}
                     time="Perlu perhatian"
-                    desc={`Siswa tercatat ${absensi.alpha} kali tidak hadir tanpa keterangan.`}
+                    desc={`Ananda tercatat ${absensi.alpha} kali tidak hadir tanpa keterangan.`}
                     color="#f43f5e"
                   />
                 )}
@@ -782,99 +821,172 @@ export default function PortalOrangTua() {
           </>
         )}
 
-        {/* ═══ FINANCE TAB ═══ */}
-        {activeTab === "finance" && (
+        {/* ═══ SURAT TAB ═══ */}
+        {activeTab === "surat" && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
             <section>
               <h2 className="text-xl font-black text-white/90 mb-1">
-                Keuangan & SPP
+                Surat & Laporan
               </h2>
               <p className="text-xs text-white/40">
-                Sistem Keuangan Digital {SCHOOL.nama}
+                Buat surat izin & lihat rapor mini Ananda
               </p>
             </section>
 
-            {/* Virtual Card Preview */}
-            <motion.div
-              whileTap={{ scale: 0.98 }}
-              className="w-full aspect-[1.6/1] rounded-3xl p-6 flex flex-col justify-between relative overflow-hidden group shadow-2xl mt-4"
-              style={{
-                background:
-                  "linear-gradient(135deg, #0ea5e9 0%, #3b82f6 50%, #4f46e5 100%)",
-                boxShadow:
-                  "0 20px 40px rgba(14, 165, 233, 0.3), inset 0 1px 0 rgba(255,255,255,0.3)",
-              }}
-            >
-              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none" />
-
-              <div className="flex justify-between items-start relative z-10">
-                <div>
-                  <p className="text-white/70 text-[10px] uppercase tracking-widest font-bold">
-                    Virtual e-Money
-                  </p>
-                  <h4 className="text-xl font-black text-white mt-1 tracking-wider">
-                    {SCHOOL.nama}
-                  </h4>
-                </div>
-                <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30">
-                  <Wallet className="w-5 h-5 text-white" />
-                </div>
-              </div>
-
-              <div className="relative z-10">
-                <p className="text-white/60 text-[10px] uppercase tracking-widest mb-1">
-                  Saldo Tabungan
-                </p>
-                <p className="text-3xl font-black text-white tracking-tight drop-shadow-md">
-                  — —
-                </p>
-              </div>
-
-              <div className="flex justify-between items-end relative z-10">
-                <div>
-                  <p className="text-white/50 text-[9px] uppercase tracking-widest">
-                    Pemegang Kartu
-                  </p>
-                  <p className="text-white font-bold tracking-widest uppercase mt-0.5">
-                    {siswa.nama}
-                  </p>
-                </div>
-                <p className="text-white/70 font-mono text-xs tracking-widest">
-                  {siswa.nisn || "0000000000"}
-                </p>
-              </div>
-            </motion.div>
-
-            {/* Coming Soon Notice */}
-            <div
-              className="rounded-[2rem] p-8 text-center relative overflow-hidden"
+            {/* ── Surat Izin Section ── */}
+            <section
+              className="rounded-[2rem] p-6 relative overflow-hidden group"
               style={{
                 background: "rgba(13,18,33,0.6)",
                 border: "1px solid rgba(255,255,255,0.05)",
                 backdropFilter: "blur(20px)",
               }}
             >
-              <div className="absolute inset-0 bg-gradient-to-b from-violet-500/5 to-transparent pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-br from-rose-500/5 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="relative z-10">
-                <div className="w-16 h-16 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center mx-auto mb-4">
-                  <Wallet size={28} className="text-violet-400" />
+                <div className="flex items-center gap-4 mb-5">
+                  <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
+                    <FileText size={22} className="text-rose-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-white/90">Surat Izin</h3>
+                    <p className="text-[10px] text-white/40 mt-0.5">Buat & cetak surat izin tidak masuk sekolah</p>
+                  </div>
                 </div>
-                <h3 className="text-base font-black text-white/80 mb-2">
-                  Segera Hadir
-                </h3>
-                <p className="text-xs text-white/30 leading-relaxed max-w-xs mx-auto">
-                  Modul keuangan digital sedang dalam pengembangan. Fitur
-                  pembayaran SPP, tabungan siswa, dan riwayat transaksi akan
-                  tersedia segera.
-                </p>
-                <div className="mt-5 flex items-center justify-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-violet-500 animate-pulse" />
-                  <span className="text-[10px] font-bold text-violet-400/60 uppercase tracking-widest">
-                    Dalam Pengembangan
-                  </span>
+                <button
+                  onClick={() => setShowIzinModal(true)}
+                  className="w-full py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 group/btn active:scale-95"
+                  style={{
+                    background: "linear-gradient(90deg, rgba(251,113,133,0.15) 0%, rgba(251,146,60,0.15) 100%)",
+                    color: "#fda4af",
+                    border: "1px solid rgba(251,113,133,0.25)",
+                  }}
+                >
+                  <FileText size={14} /> Buat Surat Izin
+                  <ChevronRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
+                </button>
+              </div>
+            </section>
+
+            {/* ── Rapor Mini Section ── */}
+            <section
+              className="rounded-[2rem] p-6 relative overflow-hidden"
+              style={{
+                background: "rgba(13,18,33,0.6)",
+                border: "1px solid rgba(255,255,255,0.05)",
+                backdropFilter: "blur(20px)",
+              }}
+            >
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
+                  <FileBarChart size={22} className="text-violet-400" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-white/90">Rapor Mini</h3>
+                  <p className="text-[10px] text-white/40 mt-0.5">Ringkasan pencapaian Ananda {SCHOOL.tahunAjaran}</p>
                 </div>
               </div>
-            </div>
+
+              {/* Student Header Card */}
+              <div className="rounded-2xl p-5 mb-4" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-xl overflow-hidden bg-white/5 border border-white/10 flex-shrink-0">
+                    {getFotoPublic(siswa.foto_url) ? (
+                      <img src={getFotoPublic(siswa.foto_url)!} alt={siswa.nama} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-white/20"><User size={24} /></div>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-sm font-black text-white/90">{siswa.nama}</p>
+                    <p className="text-[10px] text-white/40 mt-0.5">NISN: {siswa.nisn} • Kelas {siswa.kelas || "-"}</p>
+                    <p className="text-[10px] text-violet-400/70 font-bold mt-0.5">{SCHOOL.nama} • {SCHOOL.tahunAjaran} ({SCHOOL.semester})</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Kehadiran Progress */}
+              <div className="mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Tingkat Kehadiran</span>
+                  <span className="text-sm font-black text-emerald-400">
+                    {absensi.total > 0 ? `${Math.round((absensi.hadir / absensi.total) * 100)}%` : "—"}
+                  </span>
+                </div>
+                <div className="h-3 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                  <div className="h-full rounded-full transition-all duration-1000" style={{ width: absensi.total > 0 ? `${Math.round((absensi.hadir / absensi.total) * 100)}%` : "0%", background: "linear-gradient(90deg, #34d399, #22d3ee)" }} />
+                </div>
+              </div>
+
+              {/* Kehadiran Grid */}
+              <div className="grid grid-cols-4 gap-2 mb-5">
+                {[
+                  { label: "Hadir", value: absensi.hadir, color: "#34d399" },
+                  { label: "Sakit", value: absensi.sakit, color: "#fbbf24" },
+                  { label: "Izin", value: absensi.izin, color: "#60a5fa" },
+                  { label: "Alpha", value: absensi.alpha, color: "#f43f5e" },
+                ].map((item) => (
+                  <div key={item.label} className="text-center p-2.5 rounded-xl" style={{ background: `${item.color}10`, border: `1px solid ${item.color}20` }}>
+                    <p className="text-lg font-black" style={{ color: item.color }}>{item.value}</p>
+                    <p className="text-[9px] font-bold text-white/40 uppercase mt-0.5">{item.label}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Prestasi Summary */}
+              <div className="mb-5">
+                <h4 className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-3">Prestasi Diraih</h4>
+                {prestasi.length > 0 ? (
+                  <div className="space-y-2">
+                    {prestasi.slice(0, 5).map((p, i) => (
+                      <div key={p.id} className="flex items-center gap-3 p-2.5 rounded-xl" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)" }}>
+                        <div className="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 font-black text-[10px]">{i + 1}</div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold text-white/80 truncate">{p.jenis_lomba || p.nama}</p>
+                          <p className="text-[9px] text-white/30">{p.peringkat || "Partisipasi"} • {p.tingkat || "Sekolah"}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-4 rounded-xl" style={{ background: "rgba(255,255,255,0.02)" }}>
+                    <Trophy className="w-5 h-5 text-white/10 mx-auto mb-1" />
+                    <p className="text-[10px] text-white/20">Belum ada prestasi</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Catatan Khusus */}
+              {mutasi && (
+                <div className="p-3 rounded-xl mb-5" style={{ background: "rgba(192,132,252,0.08)", border: "1px solid rgba(192,132,252,0.15)" }}>
+                  <p className="text-[10px] font-bold text-purple-400 flex items-center gap-2"><AlertCircle size={12} /> Catatan: Siswa memiliki riwayat mutasi</p>
+                </div>
+              )}
+
+              {/* Print Rapor Mini */}
+              <button
+                onClick={() => {
+                  const hadirPct = absensi.total > 0 ? Math.round((absensi.hadir / absensi.total) * 100) : 0;
+                  const prestasiRows = prestasi.length > 0
+                    ? prestasi.slice(0, 10).map((p, i) => `<tr><td style="padding:8px;border:1px solid #e2e8f0;text-align:center">${i+1}</td><td style="padding:8px;border:1px solid #e2e8f0">${p.jenis_lomba||p.nama}</td><td style="padding:8px;border:1px solid #e2e8f0;text-align:center">${p.peringkat||"Partisipasi"}</td><td style="padding:8px;border:1px solid #e2e8f0;text-align:center">${p.tingkat||"Sekolah"}</td></tr>`).join("")
+                    : `<tr><td colspan="4" style="padding:16px;border:1px solid #e2e8f0;text-align:center;color:#94a3b8">Belum ada prestasi tercatat</td></tr>`;
+                  const w = window.open("", "_blank");
+                  if (!w) return;
+                  w.document.write(`<!DOCTYPE html><html><head><title>Rapor Mini - ${siswa.nama}</title><style>body{font-family:'Segoe UI',Tahoma,sans-serif;margin:0;padding:40px;color:#1e293b;line-height:1.6}.header{text-align:center;border-bottom:3px double #334155;padding-bottom:16px;margin-bottom:24px}.header h1{margin:0;font-size:16px;text-transform:uppercase;letter-spacing:2px}.header p{margin:4px 0 0;font-size:12px;color:#64748b}.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:24px;font-size:13px}.info-grid div{display:flex}.info-grid .label{width:120px;font-weight:600;color:#475569}table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}th{background:#f1f5f9;padding:8px;border:1px solid #e2e8f0;text-align:left;font-weight:600}.section-title{font-size:14px;font-weight:700;margin:20px 0 8px;color:#334155;border-left:4px solid #8b5cf6;padding-left:8px}.progress-bar{height:16px;background:#e2e8f0;border-radius:99px;overflow:hidden;margin:8px 0}.progress-fill{height:100%;background:linear-gradient(90deg,#34d399,#22d3ee);border-radius:99px}.footer{margin-top:40px;font-size:11px;color:#94a3b8;text-align:center;border-top:1px solid #e2e8f0;padding-top:16px}@media print{body{padding:20px}}</style></head><body><div class="header"><h1>${SCHOOL.nama}</h1><p>${SCHOOL.alamat}</p><p style="margin-top:12px;font-size:14px;font-weight:700;color:#334155">RAPOR MINI SISWA</p><p>Tahun Ajaran ${SCHOOL.tahunAjaran} — Semester ${SCHOOL.semester}</p></div><div class="info-grid"><div><span class="label">Nama</span>: ${siswa.nama}</div><div><span class="label">NISN</span>: ${siswa.nisn}</div><div><span class="label">Kelas</span>: ${siswa.kelas || "-"}</div><div><span class="label">Jenis Kelamin</span>: ${siswa.jk === "L" ? "Laki-laki" : "Perempuan"}</div></div><div class="section-title">Rekap Kehadiran</div><div class="progress-bar"><div class="progress-fill" style="width:${hadirPct}%"></div></div><p style="font-size:12px;color:#64748b">Tingkat kehadiran: <strong>${hadirPct}%</strong></p><table><tr><th>Hadir</th><th>Sakit</th><th>Izin</th><th>Alpha</th><th>Total</th></tr><tr><td style="padding:8px;border:1px solid #e2e8f0;text-align:center;color:#059669;font-weight:700">${absensi.hadir}</td><td style="padding:8px;border:1px solid #e2e8f0;text-align:center;color:#d97706;font-weight:700">${absensi.sakit}</td><td style="padding:8px;border:1px solid #e2e8f0;text-align:center;color:#2563eb;font-weight:700">${absensi.izin}</td><td style="padding:8px;border:1px solid #e2e8f0;text-align:center;color:#dc2626;font-weight:700">${absensi.alpha}</td><td style="padding:8px;border:1px solid #e2e8f0;text-align:center;font-weight:700">${absensi.total}</td></tr></table><div class="section-title">Prestasi</div><table><tr><th style="width:40px;text-align:center">No</th><th>Jenis Lomba</th><th style="text-align:center">Peringkat</th><th style="text-align:center">Tingkat</th></tr>${prestasiRows}</table><div class="footer"><p>Dicetak dari Portal ${BRAND.appName} - ${SCHOOL.nama}</p><p>Tanggal cetak: ${new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</p></div></body></html>`);
+                  w.document.close();
+                  w.print();
+                }}
+                className="w-full py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 group/btn active:scale-95"
+                style={{
+                  background: "linear-gradient(90deg, rgba(139,92,246,0.15) 0%, rgba(34,211,238,0.15) 100%)",
+                  color: "#c4b5fd",
+                  border: "1px solid rgba(139,92,246,0.25)",
+                }}
+              >
+                <Printer size={14} /> Cetak Rapor Mini
+                <ChevronRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
+              </button>
+            </section>
           </div>
         )}
 
@@ -946,11 +1058,17 @@ export default function PortalOrangTua() {
 
               <div className="pt-4">
                 <button
-                  onClick={() =>
-                    toast.info(
-                      "Fitur pengajuan perubahan data akan segera tersedia.",
-                    )
-                  }
+                  onClick={() => {
+                    const text = `Assalamu'alaikum, saya ingin mengajukan koreksi data siswa:\n\nNama: ${siswa.nama}\nNISN: ${siswa.nisn || "-"}\nKelas: ${siswa.kelas || "-"}\n\nData yang perlu dikoreksi:\n(Silakan tulis data yang salah dan perbaikannya di sini)\n\nTerima kasih.`;
+                    const phoneRaw = SCHOOL.telepon || "081234567890";
+                    let phone = phoneRaw.replace(/[^0-9]/g, "");
+                    if (phone.startsWith("0")) {
+                      phone = "62" + phone.slice(1);
+                    } else if (phone && !phone.startsWith("62")) {
+                      phone = "62" + phone;
+                    }
+                    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, "_blank");
+                  }}
                   className="w-full py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 group active:scale-95"
                   style={{
                     background:
@@ -1232,10 +1350,10 @@ export default function PortalOrangTua() {
           </button>
         </div>
         <NavButton
-          active={activeTab === "finance"}
-          onClick={() => switchTab("finance")}
-          icon={Wallet}
-          label="Keuangan"
+          active={activeTab === "surat"}
+          onClick={() => switchTab("surat")}
+          icon={FileText}
+          label="Surat"
         />
         <NavButton
           active={activeTab === "profile"}
@@ -1267,6 +1385,265 @@ export default function PortalOrangTua() {
                 <X size={20} />
               </button>
               <VirtualPass siswa={siswa} onClose={() => setShowPass(false)} />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Surat Izin Modal */}
+      <AnimatePresence>
+        {showIzinModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] bg-[#050811]/90 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              className="relative w-full max-w-md rounded-[2.5rem] p-6 md:p-8 bg-[#0a0f1e]/85 border border-white/10 shadow-2xl backdrop-blur-xl my-8 text-left"
+            >
+              <button
+                onClick={() => setShowIzinModal(false)}
+                className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-colors border border-white/10"
+              >
+                <X size={20} />
+              </button>
+
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/25 flex items-center justify-center">
+                  <FileText size={22} className="text-rose-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-white/90">Buat Surat Izin</h3>
+                  <p className="text-xs text-white/40">Ajukan surat izin untuk {siswa?.nama || "siswa"}</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {/* Alasan Selector */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-white/40">Kategori Alasan</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(["sakit", "izin", "lainnya"] as const).map((type) => (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => setIzinAlasan(type)}
+                        className={`py-3 rounded-xl font-bold text-xs uppercase tracking-wider border transition-all ${
+                          izinAlasan === type
+                            ? "bg-rose-500/20 text-rose-300 border-rose-500/40 shadow-[0_0_15px_rgba(244,63,94,0.15)]"
+                            : "bg-white/2 border-white/5 text-white/60 hover:bg-white/5"
+                        }`}
+                      >
+                        {type}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Tanggal Grid */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-white/40">Tgl Mulai</label>
+                    <input
+                      type="date"
+                      value={izinTglMulai}
+                      onChange={(e) => setIzinTglMulai(e.target.value)}
+                      className="w-full bg-white/2 border border-white/5 rounded-xl px-4 py-3 text-xs text-white font-bold focus:outline-none focus:border-rose-500/50"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-white/40">Tgl Selesai</label>
+                    <input
+                      type="date"
+                      value={izinTglSelesai}
+                      onChange={(e) => setIzinTglSelesai(e.target.value)}
+                      className="w-full bg-white/2 border border-white/5 rounded-xl px-4 py-3 text-xs text-white font-bold focus:outline-none focus:border-rose-500/50"
+                    />
+                  </div>
+                </div>
+
+                {/* Keterangan Tambahan */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-white/40">Keterangan / Detail Alasan</label>
+                  <textarea
+                    rows={3}
+                    placeholder="Contoh: Demam tinggi sejak semalam dan disarankan dokter istirahat."
+                    value={izinKeterangan}
+                    onChange={(e) => setIzinKeterangan(e.target.value)}
+                    className="w-full bg-white/2 border border-white/5 rounded-xl p-4 text-xs text-white font-medium placeholder-white/20 focus:outline-none focus:border-rose-500/50 resize-none"
+                  />
+                </div>
+
+                {/* Submit / Print Button */}
+                <button
+                  onClick={() => {
+                    if (!izinTglMulai || !izinTglSelesai) {
+                      toast.error("Silakan isi tanggal mulai dan tanggal selesai");
+                      return;
+                    }
+                    if (!izinKeterangan.trim()) {
+                      toast.error("Silakan isi keterangan alasan");
+                      return;
+                    }
+
+                    // Format date for display
+                    const formatIndoDate = (dateStr: string) => {
+                      const d = new Date(dateStr);
+                      return d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+                    };
+
+                    const tglMulaiFormatted = formatIndoDate(izinTglMulai);
+                    const tglSelesaiFormatted = formatIndoDate(izinTglSelesai);
+                    const dateRangeStr = tglMulaiFormatted === tglSelesaiFormatted 
+                      ? tglMulaiFormatted 
+                      : `${tglMulaiFormatted} s.d. ${tglSelesaiFormatted}`;
+
+                    const w = window.open("", "_blank");
+                    if (!w) return;
+                    w.document.write(`
+                      <!DOCTYPE html>
+                      <html>
+                      <head>
+                        <title>Surat Keterangan Izin - ${siswa?.nama}</title>
+                        <style>
+                          body {
+                            font-family: 'Times New Roman', Times, serif;
+                            margin: 0;
+                            padding: 50px 70px;
+                            color: #000;
+                            line-height: 1.6;
+                            font-size: 16px;
+                          }
+                          .header {
+                            text-align: center;
+                            border-bottom: 3px double #000;
+                            padding-bottom: 10px;
+                            margin-bottom: 30px;
+                          }
+                          .header h1 {
+                            margin: 0;
+                            font-size: 22px;
+                            text-transform: uppercase;
+                            font-weight: bold;
+                          }
+                          .header p {
+                            margin: 3px 0 0;
+                            font-size: 13px;
+                          }
+                          .title {
+                            text-align: center;
+                            font-weight: bold;
+                            text-decoration: underline;
+                            text-transform: uppercase;
+                            margin-bottom: 30px;
+                            font-size: 18px;
+                          }
+                          .content {
+                            text-align: justify;
+                            margin-bottom: 30px;
+                          }
+                          .table-info {
+                            margin: 15px 30px;
+                          }
+                          .table-info td {
+                            padding: 4px 10px;
+                            vertical-align: top;
+                          }
+                          .table-info td.label {
+                            width: 150px;
+                          }
+                          .signature-area {
+                            margin-top: 50px;
+                            display: flex;
+                            justify-content: space-between;
+                          }
+                          .signature-box {
+                            width: 200px;
+                            text-align: center;
+                          }
+                          .signature-space {
+                            height: 80px;
+                          }
+                          @media print {
+                            body {
+                              padding: 20px 30px;
+                            }
+                          }
+                        </style>
+                      </head>
+                      <body>
+                        <div class="header">
+                          <h1>${SCHOOL.nama}</h1>
+                          <p>${SCHOOL.alamat}</p>
+                          <p>Telepon: ${SCHOOL.telepon || "-"} | Email: ${SCHOOL.email || "-"}</p>
+                        </div>
+                        
+                        <div class="title">SURAT PERNYATAAN IZIN ORANG TUA / WALI</div>
+
+                        <div class="content">
+                          <p>Yang bertanda tangan di bawah ini selaku Orang Tua / Wali murid dari siswa:</p>
+                          
+                          <table class="table-info">
+                            <tr>
+                              <td class="label">Nama Lengkap</td>
+                              <td>: <strong>${siswa?.nama}</strong></td>
+                            </tr>
+                            <tr>
+                              <td class="label">NISN / ID</td>
+                              <td>: ${siswa?.nisn || "-"}</td>
+                            </tr>
+                            <tr>
+                              <td class="label">Kelas</td>
+                              <td>: ${siswa?.kelas || "-"}</td>
+                            </tr>
+                            <tr>
+                              <td class="label">Sekolah</td>
+                              <td>: ${SCHOOL.nama}</td>
+                            </tr>
+                          </table>
+
+                          <p>Menerangkan bahwa anak tersebut di atas tidak dapat mengikuti kegiatan belajar mengajar sebagaimana mestinya pada <strong>${dateRangeStr}</strong> dikarenakan <strong>${izinAlasan === "sakit" ? "SAKIT" : izinAlasan.toUpperCase()}</strong> dengan keterangan: ${izinKeterangan}.</p>
+                          
+                          <p>Demikian surat izin ini kami buat dengan sebenar-benarnya untuk dipergunakan sebagaimana mestinya. Atas perhatian Bapak/Ibu Wali Kelas dan Pihak Sekolah, kami ucapkan terima kasih.</p>
+                        </div>
+
+                        <div class="signature-area">
+                          <div class="signature-box">
+                            <p>Mengetahui,</p>
+                            <p>Wali Kelas</p>
+                            <div class="signature-space"></div>
+                            <p style="border-bottom: 1px solid #000; display: inline-block; min-width: 150px;">( .................................... )</p>
+                          </div>
+                          
+                          <div class="signature-box">
+                            <p>${SCHOOL.kota || "Surakarta"}, ${new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</p>
+                            <p>Hormat Kami, Orang Tua/Wali</p>
+                            <div class="signature-space"></div>
+                            <p style="border-bottom: 1px solid #000; display: inline-block; min-width: 150px;">( .................................... )</p>
+                          </div>
+                        </div>
+
+                        <script>
+                          window.onload = function() {
+                            window.print();
+                          }
+                        </script>
+                      </body>
+                      </html>
+                    `);
+                    w.document.close();
+                    setShowIzinModal(false);
+                    toast.success("Surat Izin berhasil dibuat! Silakan cetak dokumen.");
+                  }}
+                  className="w-full py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white shadow-lg shadow-rose-500/20 active:scale-98"
+                >
+                  <Printer size={16} /> Cetak & Ajukan Izin
+                </button>
+              </div>
             </motion.div>
           </motion.div>
         )}
