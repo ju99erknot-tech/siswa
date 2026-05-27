@@ -36,6 +36,28 @@ interface SiswaKelulusan {
   nilai_kelulusan?: Record<string, string> | null;
 }
 
+// Menghitung rata-rata nilai siswa secara dinamis di tabel (angka)
+const getSiswaAverageNumber = (siswa: SiswaKelulusan) => {
+  if (!siswa.nilai_kelulusan) return 0;
+  let sum = 0;
+  let count = 0;
+  Object.values(siswa.nilai_kelulusan).forEach(val => {
+    if (val && val.trim() !== "") {
+      const num = parseFloat(val.replace(",", "."));
+      if (!isNaN(num)) {
+        sum += num;
+        count++;
+      }
+    }
+  });
+  return count > 0 ? sum / count : 0;
+};
+
+const getSiswaAverage = (siswa: SiswaKelulusan) => {
+  const avg = getSiswaAverageNumber(siswa);
+  return avg > 0 ? avg.toFixed(2).replace(".", ",") : "—";
+};
+
 export default function KelulusanPage() {
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
@@ -236,27 +258,7 @@ export default function KelulusanPage() {
     setSavingSettings(false);
   };
 
-  // Menghitung rata-rata nilai siswa secara dinamis di tabel (angka)
-  const getSiswaAverageNumber = (siswa: SiswaKelulusan) => {
-    if (!siswa.nilai_kelulusan) return 0;
-    let sum = 0;
-    let count = 0;
-    Object.values(siswa.nilai_kelulusan).forEach(val => {
-      if (val && val.trim() !== "") {
-        const num = parseFloat(val.replace(",", "."));
-        if (!isNaN(num)) {
-          sum += num;
-          count++;
-        }
-      }
-    });
-    return count > 0 ? sum / count : 0;
-  };
 
-  const getSiswaAverage = (siswa: SiswaKelulusan) => {
-    const avg = getSiswaAverageNumber(siswa);
-    return avg > 0 ? avg.toFixed(2).replace(".", ",") : "—";
-  };
 
   // Membuka modal input nilai & nomor SKL
   const openNilaiModal = (siswa: SiswaKelulusan) => {
