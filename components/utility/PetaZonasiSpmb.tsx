@@ -164,7 +164,7 @@ export default function PetaZonasiSpmb() {
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Cetak Verifikasi Zonasi - \${result.siswa.nama}</title>
+        <title>Cetak Verifikasi Zonasi - ${result.siswa.nama}</title>
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
         <style>
           @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
