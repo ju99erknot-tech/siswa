@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import Providers from '@/components/providers/Providers'
-import GlowingCursor from '@/components/shared/GlowingCursor'
 import './globals.css'
 
 const schoolName = process.env.NEXT_PUBLIC_SCHOOL_NAME || 'SDN 02 CIBADAK'
@@ -16,7 +15,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="id" className="dark" style={{ colorScheme: 'dark' }} data-scroll-behavior="smooth">
       <body className="font-sans antialiased">
         <Providers>
-          <GlowingCursor />
           {children}
         </Providers>
       </body>
