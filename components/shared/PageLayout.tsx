@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
+import { AnimatedCounter } from './AnimatedCounter'
 
 export interface PageShellProps {
   children: ReactNode
@@ -69,7 +70,15 @@ export function PageHeader({
               {stats.map((s, i) => (
                 <div key={i} className="flex flex-col">
                   <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">{s.label}</span>
-                  <span className="text-lg font-black text-white">{s.value}</span>
+                  <span className="text-lg font-black text-white">
+                    {typeof s.value === 'number' ? (
+                      <AnimatedCounter value={s.value} />
+                    ) : typeof s.value === 'string' && s.value.trim() !== '' && !isNaN(Number(s.value)) ? (
+                      <AnimatedCounter value={Number(s.value)} />
+                    ) : (
+                      s.value
+                    )}
+                  </span>
                 </div>
               ))}
             </div>
@@ -107,7 +116,15 @@ export function StatCards({ items }: StatCardsProps) {
           style={{ background: 'rgba(13,18,33,0.80)', border: '1px solid rgba(255,255,255,0.04)', backdropFilter: 'blur(20px)' }}
         >
           {s.icon && <div className="mb-2 opacity-60">{s.icon}</div>}
-          <div className="text-2xl font-black text-white/90 tracking-tight">{s.value}</div>
+          <div className="text-2xl font-black text-white/90 tracking-tight">
+            {typeof s.value === 'number' ? (
+              <AnimatedCounter value={s.value} />
+            ) : typeof s.value === 'string' && s.value.trim() !== '' && !isNaN(Number(s.value)) ? (
+              <AnimatedCounter value={Number(s.value)} />
+            ) : (
+              s.value
+            )}
+          </div>
           <div
             className="text-[10px] font-bold uppercase tracking-[0.12em] mt-1"
             style={{ color: s.color || '#a78bfa' }}

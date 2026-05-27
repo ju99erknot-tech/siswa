@@ -43,6 +43,47 @@ export default function KalenderPage() {
   const [modalOpen, setModalOpen] = useState(false)
   const [editItem, setEditItem] = useState<AgendaItem | null>(null)
   const [formData, setFormData] = useState({ title: '', desc: '', type: 'akademik', date: '' })
+  const [draggedOverDate, setDraggedOverDate] = useState<Date | null>(null)
+
+  const handleDrop = async (e: React.DragEvent, targetDate: Date) => {
+    e.preventDefault()
+    setDraggedOverDate(null)
+    const itemId = e.dataTransfer.getData('text/plain')
+    const source = e.dataTransfer.getData('source')
+
+    if (source === 'category') {
+      openAddModal(targetDate)
+      setFormData(f => ({ ...f, type: itemId, date: format(targetDate, 'yyyy-MM-dd') }))
+      return
+    }
+
+    if (source === 'agenda') {
+      const item = agenda.find(a => a.id === itemId)
+      if (!item) return
+      if (item.id.startsWith('f')) {
+        toast.info('Agenda bawaan tidak dapat dipindahkan')
+        return
+      }
+
+      if (isSameDay(new Date(item.date), targetDate)) return
+
+      const formattedDate = format(targetDate, 'yyyy-MM-dd')
+      try {
+        const supabase = createClient()
+        const { error } = await supabase
+          .from('kalender')
+          .update({ date: formattedDate })
+          .eq('id', item.id)
+
+        if (error) throw error
+        toast.success(`Agenda "${item.title}" dipindahkan ke ${format(targetDate, 'd MMMM yyyy', { locale: idLocale })}`)
+        fetchAgenda()
+        setSelectedDate(targetDate)
+      } catch {
+        toast.error('Gagal memindahkan agenda')
+      }
+    }
+  }
 
   // Fetch from Supabase (with fallback)
   const fetchAgenda = useCallback(async () => {
@@ -193,13 +234,17 @@ export default function KalenderPage() {
                 const dayAgenda = getAgendaFor(day)
                 const td = isToday(day)
                 const selected = selectedDate && isSameDay(day, selectedDate)
+                const isDraggedOver = draggedOverDate && isSameDay(day, draggedOverDate)
                 return (
                   <motion.button key={day.toISOString()} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
                     onClick={() => setSelectedDate(day)}
+                    onDragOver={(e) => { e.preventDefault(); setDraggedOverDate(day) }}
+                    onDragLeave={() => setDraggedOverDate(null)}
+                    onDrop={(e) => handleDrop(e, day)}
                     className="h-16 flex flex-col items-center justify-start pt-1.5 rounded-xl transition-all"
                     style={{
-                      background: selected ? 'rgba(139,92,246,0.15)' : td ? 'rgba(255,255,255,0.03)' : 'transparent',
-                      border: selected ? '1px solid rgba(139,92,246,0.3)' : '1px solid transparent',
+                      background: isDraggedOver ? 'rgba(139,92,246,0.3)' : selected ? 'rgba(139,92,246,0.15)' : td ? 'rgba(255,255,255,0.03)' : 'transparent',
+                      border: isDraggedOver ? '1px solid #8b5cf6' : selected ? '1px solid rgba(139,92,246,0.3)' : '1px solid transparent',
                     }}>
                     <span className={`text-[13px] font-bold ${td ? 'text-violet-400' : selected ? 'text-white/90' : 'text-white/40'}`}>
                       {format(day, 'd')}
@@ -220,7 +265,16 @@ export default function KalenderPage() {
             {/* Legend */}
             <div className="flex justify-center gap-4 px-5 py-3" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
               {Object.entries(TYPE_STYLE).map(([key, s]) => (
-                <div key={key} className="flex items-center gap-1.5">
+                <div
+                  key={key}
+                  draggable
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData('text/plain', key)
+                    e.dataTransfer.setData('source', 'category')
+                  }}
+                  className="flex items-center gap-1.5 cursor-grab active:cursor-grabbing hover:bg-white/[0.04] px-2 py-1 rounded-lg transition-colors"
+                  title="Seret kategori ini ke tanggal kalender untuk menambah agenda"
+                >
                   <div className="w-2 h-2 rounded-full" style={{ background: s.color }} />
                   <span className="text-[9px] text-white/30 font-bold">{s.label}</span>
                 </div>
@@ -249,7 +303,16 @@ export default function KalenderPage() {
                 selectedAgenda.length > 0 ? selectedAgenda.map(a => {
                   const s = TYPE_STYLE[a.type]
                   return (
-                    <div key={a.id} className="p-3 rounded-xl group relative" style={{ background: s.bg, border: `1px solid ${s.color}20` }}>
+                    <div
+                      key={a.id}
+                      draggable
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData('text/plain', a.id)
+                        e.dataTransfer.setData('source', 'agenda')
+                      }}
+                      className="p-3 rounded-xl group relative cursor-grab active:cursor-grabbing hover:bg-white/[0.02] transition-colors"
+                      style={{ background: s.bg, border: `1px solid ${s.color}20` }}
+                    >
                       <div className="flex items-center gap-2 mb-1">
                         <div className="w-1.5 h-1.5 rounded-full" style={{ background: s.color }} />
                         <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: s.color }}>{s.label}</span>

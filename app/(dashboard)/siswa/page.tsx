@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 // ============================================================
 // Buku Induk Siswa — Portal Kesiswaan SDN 02 CIBADAK
@@ -56,6 +56,7 @@ import {
   ClipboardList,
 } from "lucide-react";
 import type { Siswa } from "@/types";
+import { AnimatedCounter } from "@/components/shared/AnimatedCounter";
 
 import {
   getInitials,
@@ -1773,7 +1774,7 @@ export default function SiswaPage() {
             >
               <Users size={14} className="text-white/35" />
               <span className="text-sm font-bold text-white/80">
-                {stats.total}
+                <AnimatedCounter value={stats.total} />
               </span>
               <span className="text-xs text-white/30">total</span>
             </div>
@@ -1786,11 +1787,11 @@ export default function SiswaPage() {
             >
               <User size={14} style={{ color: "#22d3ee" }} />
               <span className="text-sm font-bold" style={{ color: "#67e8f9" }}>
-                {stats.laki}L
+                <AnimatedCounter value={stats.laki} suffix="L" />
               </span>
               <span className="text-xs text-white/20">·</span>
               <span className="text-sm font-bold" style={{ color: "#f9a8d4" }}>
-                {stats.perempuan}P
+                <AnimatedCounter value={stats.perempuan} suffix="P" />
               </span>
             </div>
             <div className="flex items-center gap-1.5 ml-2">

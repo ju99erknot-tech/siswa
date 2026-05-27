@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -26,6 +26,7 @@ import { id as idLocale } from "date-fns/locale";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import * as XLSX from "xlsx";
+import { AnimatedCounter } from "@/components/shared/AnimatedCounter";
 
 type StatusAbsen = "H" | "S" | "I" | "A" | null;
 
@@ -287,7 +288,7 @@ export default function AbsensiPage() {
             }}
           >
             <p className="text-xl font-black" style={{ color: s.color }}>
-              {s.value}
+              <AnimatedCounter value={s.value} />
             </p>
             <p
               className="text-[9px] font-bold uppercase tracking-widest mt-0.5"

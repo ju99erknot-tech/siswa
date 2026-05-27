@@ -8,12 +8,25 @@ const DAYS = ['Min','Sen','Sel','Rab','Kam','Jum','Sab']
 const MONTHS = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des']
 
 export function KalenderAkademik() {
-  const { dataAgenda, addAgenda, deleteAgenda } = useAgenda()
+  const { dataAgenda, addAgenda, updateAgenda, deleteAgenda } = useAgenda()
   const [cur, setCur] = useState(new Date())
   const [sel, setSel] = useState<Date|null>(null)
   const [showAdd, setShowAdd] = useState(false)
   const [nev, setNev] = useState({ judul:'', waktu:'' })
+  const [draggedOverDate, setDraggedOverDate] = useState<Date | null>(null)
   const y = cur.getFullYear(), m = cur.getMonth()
+
+  const handleDrop = async (e: React.DragEvent, targetDate: Date) => {
+    e.preventDefault()
+    setDraggedOverDate(null)
+    const itemId = e.dataTransfer.getData('text/plain')
+    const item = dataAgenda.find(a => a.id === itemId)
+    if (!item) return
+
+    const formattedDate = `${targetDate.getFullYear()}-${String(targetDate.getMonth()+1).padStart(2,'0')}-${String(targetDate.getDate()).padStart(2,'0')}`
+    await updateAgenda(item.id, { tanggal: formattedDate })
+    setSel(targetDate)
+  }
 
   const days = useMemo(() => {
     const f = new Date(y,m,1).getDay(), dim = new Date(y,m+1,0).getDate()
@@ -72,9 +85,19 @@ export function KalenderAkademik() {
           {days.map((d,i) => {
             if(!d) return <div key={`e-${i}`} />
             const evts = getEvts(d), today=isToday(d), s=isSel(d)
+            const isDraggedOver = draggedOverDate && d && d.getTime() === draggedOverDate.getTime()
             return (
-              <button key={d.toISOString()} onClick={()=>setSel(d)} className="relative h-9 rounded-lg flex flex-col items-center justify-center text-xs transition-all"
-                style={{ background:s?'rgba(139,92,246,0.20)':today?'rgba(139,92,246,0.08)':'transparent', border:s?'1px solid rgba(139,92,246,0.30)':today?'1px solid rgba(139,92,246,0.15)':'1px solid transparent', color:today?'#a78bfa':'rgba(255,255,255,0.55)', fontWeight:today||s?700:400 }}>
+              <button key={d.toISOString()} onClick={()=>setSel(d)}
+                onDragOver={(e) => { e.preventDefault(); setDraggedOverDate(d) }}
+                onDragLeave={() => setDraggedOverDate(null)}
+                onDrop={(e) => handleDrop(e, d)}
+                className="relative h-9 rounded-lg flex flex-col items-center justify-center text-xs transition-all"
+                style={{
+                  background: isDraggedOver ? 'rgba(139,92,246,0.30)' : s ? 'rgba(139,92,246,0.20)' : today ? 'rgba(139,92,246,0.08)' : 'transparent',
+                  border: isDraggedOver ? '1px solid #8b5cf6' : s ? '1px solid rgba(139,92,246,0.30)' : today ? '1px solid rgba(139,92,246,0.15)' : '1px solid transparent',
+                  color: today ? '#a78bfa' : 'rgba(255,255,255,0.55)',
+                  fontWeight: today || s ? 700 : 400
+                }}>
                 <span>{d.getDate()}</span>
                 {evts.length>0 && <div className="absolute bottom-0.5 flex gap-0.5">{evts.slice(0,3).map((e,j)=><div key={j} className="w-1 h-1 rounded-full bg-violet-400" />)}</div>}
               </button>
@@ -98,7 +121,15 @@ export function KalenderAkademik() {
               </div>
             )}
             {selEvts.length===0 ? <p className="text-xs text-white/25 text-center py-4">Tidak ada agenda</p> : selEvts.map(e=>(
-              <div key={e.id} className="flex items-center gap-3 p-2 rounded-lg mb-1" style={{ background:'rgba(255,255,255,0.03)', borderLeft:'3px solid #a78bfa' }}>
+              <div
+                key={e.id}
+                draggable
+                onDragStart={(ev) => {
+                  ev.dataTransfer.setData('text/plain', e.id)
+                }}
+                className="flex items-center gap-3 p-2 rounded-lg mb-1 cursor-grab active:cursor-grabbing hover:bg-white/[0.05] transition-all"
+                style={{ background:'rgba(255,255,255,0.03)', borderLeft:'3px solid #a78bfa' }}
+              >
                 <div className="flex-1"><p className="text-xs font-medium text-white/70">{e.judul}</p>{e.waktu && <p className="text-[10px] text-white/30 flex items-center gap-1"><Clock size={10} />{e.waktu}</p>}</div>
                 <button onClick={()=>deleteAgenda(e.id)} className="w-6 h-6 rounded flex items-center justify-center text-white/20 hover:text-red-400 hover:bg-red-500/10"><Trash2 size={12} /></button>
               </div>

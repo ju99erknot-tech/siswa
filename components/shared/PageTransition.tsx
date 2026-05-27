@@ -11,10 +11,18 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
   return (
     <motion.div
       key={pathname}
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+      initial={{ opacity: 0, y: 12, scale: 0.988 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+      className="relative"
     >
+      {/* Premium ambient glass sweep decoration */}
+      <motion.div
+        initial={{ left: '-100%', opacity: 0.25 }}
+        animate={{ left: '100%', opacity: 0 }}
+        transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1], delay: 0.02 }}
+        className="absolute inset-y-0 w-[30%] pointer-events-none z-50 bg-gradient-to-r from-transparent via-white/[0.03] to-transparent -skew-x-[25deg]"
+      />
       {children}
     </motion.div>
   )
