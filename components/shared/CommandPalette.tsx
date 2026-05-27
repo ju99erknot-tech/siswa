@@ -321,16 +321,17 @@ export function CommandPalette() {
   const { user, dataSiswa, dataGuru, dataPrestasi, searchOpen: open, setSearchOpen: setOpen } = useAppStore();
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [recentSearches, setRecentSearches] = useState<string[]>(() => {
-    try {
-      return JSON.parse(localStorage.getItem("cmd_recent") || "[]");
-    } catch {
-      return [];
-    }
-  });
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("cmd_recent");
+      if (stored) setRecentSearches(JSON.parse(stored));
+    } catch {}
+  }, []);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {

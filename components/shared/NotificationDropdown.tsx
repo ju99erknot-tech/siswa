@@ -111,22 +111,18 @@ export function NotificationDropdown() {
   const [activeTab, setActiveTab] = useState<TabType>("semua");
   const [snoozeOpen, setSnoozeOpen] = useState<string | null>(null);
 
-  const [readIds, setReadIds] = useState<Set<string>>(() => {
+  const [readIds, setReadIds] = useState<Set<string>>(new Set());
+  const [snoozed, setSnoozed] = useState<Record<string, number>>({});
+
+  useEffect(() => {
     try {
       const stored = localStorage.getItem("notification_read_ids");
-      return stored ? new Set(JSON.parse(stored)) : new Set();
-    } catch {
-      return new Set();
-    }
-  });
-
-  const [snoozed, setSnoozed] = useState<Record<string, number>>(() => {
-    try {
-      return JSON.parse(localStorage.getItem("notif_snoozed") || "{}");
-    } catch {
-      return {};
-    }
-  });
+      if (stored) setReadIds(new Set(JSON.parse(stored)));
+      
+      const storedSnooze = localStorage.getItem("notif_snoozed");
+      if (storedSnooze) setSnoozed(JSON.parse(storedSnooze));
+    } catch {}
+  }, []);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { dataSiswa } = useAppStore();
