@@ -283,15 +283,17 @@ export default function KapsulWaktuPage() {
           headers={["No", "Foto", "Judul", "Siswa", "Kelas", "Kategori", "Tanggal", "Aksi"]}
           loading={isLoading}
           empty={
-            <tr>
-              <td colSpan={8}>
-                <EmptyState
-                  icon={<Clock className="w-7 h-7 text-white/20" />}
-                  title="Belum Ada Momen"
-                  subtitle="Klik tombol 'Tambah Momen' untuk mulai mendokumentasikan perjalanan siswa."
-                />
-              </td>
-            </tr>
+            filtered.length === 0 ? (
+              <tr>
+                <td colSpan={8}>
+                  <EmptyState
+                    icon={<Clock className="w-7 h-7 text-white/20" />}
+                    title="Belum Ada Momen"
+                    subtitle="Klik tombol 'Tambah Momen' untuk mulai mendokumentasikan perjalanan siswa."
+                  />
+                </td>
+              </tr>
+            ) : undefined
           }
         >
           {pag.paginated.map((item, idx) => {
