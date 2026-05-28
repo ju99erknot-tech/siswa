@@ -94,7 +94,7 @@ export default async function DashboardLayout({
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <Header user={user} />
 
-        <main className="flex-1 overflow-y-auto custom-scroll relative pb-20 lg:pb-0">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden custom-scroll relative pb-20 lg:pb-0">
           {/* Ambient background decoration */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
             <div
