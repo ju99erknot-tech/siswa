@@ -538,3 +538,27 @@ export const KEBUTUHAN_KHUSUS = [
   "N (ADHD)",
   "O (Lainnya)",
 ];
+
+// ── Kapsul Waktu (Time Capsule) ──────────────────────────────
+export const KATEGORI_KAPSUL = [
+  'Akademik', 'Prestasi', 'Kesehatan', 'Eskul', 'Sosial', 'Momen'
+] as const;
+export type KategoriKapsul = typeof KATEGORI_KAPSUL[number];
+
+export interface KapsulWaktu {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  siswa_id: string;
+  nisn: string;
+  judul: string;
+  deskripsi?: string;
+  foto_url?: string;
+  kategori: KategoriKapsul;
+  kelas_saat_itu?: string;
+  tanggal_momen: string;
+  ditambahkan_oleh?: string;
+}
+
+export type KapsulWaktuInsert = Omit<KapsulWaktu, 'id' | 'created_at' | 'updated_at'>;
+export type KapsulWaktuUpdate = Partial<KapsulWaktuInsert>;

@@ -135,7 +135,7 @@ export function AuroraSelect({
           className,
         )}
         style={{
-          background: focused
+          backgroundColor: focused
             ? "rgba(139,92,246,0.06)"
             : "rgba(255,255,255,0.04)",
           border: `1px solid ${error ? "rgba(244,63,94,0.50)" : focused ? "rgba(139,92,246,0.45)" : "rgba(255,255,255,0.07)"}`,

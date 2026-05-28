@@ -14,6 +14,7 @@ import { useIzin } from "@/hooks/useIzin";
 import { usePIP } from "@/hooks/usePIP";
 import { useEskul } from "@/hooks/useEskul";
 import { useJurnal } from "@/hooks/useJurnal";
+import { useKapsulWaktu } from "@/hooks/useKapsulWaktu";
 
 export default function StoreInitializer({
   user,
@@ -59,12 +60,13 @@ export default function StoreInitializer({
   const { isLoading: load10 } = usePIP();
   const { isLoading: load11 } = useEskul();
   const { isLoading: load12 } = useJurnal();
+  const { isLoading: load13 } = useKapsulWaktu();
 
   useEffect(() => {
     // Determine overall fetching state
-    const isAnyLoading = load1 || load2 || load3 || load4 || load5 || load6 || load7 || load8 || load9 || load10 || load11 || load12;
+    const isAnyLoading = load1 || load2 || load3 || load4 || load5 || load6 || load7 || load8 || load9 || load10 || load11 || load12 || load13;
     setFetching(isAnyLoading);
-  }, [load1, load2, load3, load4, load5, load6, load7, load8, load9, load10, load11, load12, setFetching]);
+  }, [load1, load2, load3, load4, load5, load6, load7, load8, load9, load10, load11, load12, load13, setFetching]);
 
   return null;
 }

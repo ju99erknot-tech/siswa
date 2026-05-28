@@ -55,6 +55,7 @@ import {
   BookOpenCheck,
   CalendarDays,
   Printer,
+  Clock,
 } from "lucide-react";
 import { useAppStore } from "@/store/app.store";
 import { cn } from "@/lib/utils";
@@ -173,6 +174,7 @@ const NAV_SECTIONS: NavSection[] = [
         href: "/alumni",
         children: [
           { label: "Buku Alumni", href: "/alumni", icon: GraduationCap },
+          { label: "Kapsul Waktu", href: "/kapsul-waktu", icon: Clock },
           { label: "Tracer Study", href: "/tracer", icon: Telescope },
           { label: "Ekspor Data", href: "/ekspor", icon: Download },
           { label: "Print Center", href: "/cetak", icon: Printer },

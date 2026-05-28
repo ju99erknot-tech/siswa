@@ -21,6 +21,7 @@ import type {
   Pengaturan,
   Guru,
   MasterKelas,
+  KapsulWaktu,
 } from "@/types";
 
 interface TableFilterState {
@@ -64,6 +65,8 @@ interface AppState {
   dataKelas: MasterKelas[];
   pengaturan: Pengaturan | null;
   stagingData: Record<string, unknown>[];
+  dataKapsulWaktu: KapsulWaktu[];
+  setDataKapsulWaktu: (d: KapsulWaktu[]) => void;
 
   setDataSiswa: (d: Siswa[]) => void;
   setDataMutasiMasuk: (d: MutasiMasuk[]) => void;
@@ -185,6 +188,7 @@ export const useAppStore = create<AppState>()((set) => ({
   dataKelas: [],
   pengaturan: null,
   stagingData: [],
+  dataKapsulWaktu: [],
 
   setDataSiswa: (d) => set({ dataSiswa: d }),
   setDataMutasiMasuk: (d) => set({ dataMutasiMasuk: d }),
@@ -206,6 +210,7 @@ export const useAppStore = create<AppState>()((set) => ({
   setDataKelas: (d) => set({ dataKelas: d }),
   setPengaturan: (d) => set({ pengaturan: d }),
   setStagingData: (d) => set({ stagingData: d }),
+  setDataKapsulWaktu: (d) => set({ dataKapsulWaktu: d }),
 
   // UI
   sidebarOpen: false,

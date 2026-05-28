@@ -394,6 +394,46 @@ export default function PortalOrangTua() {
             {/* TODO: Replace with real activity/momen data fetched from Supabase */}
             {/* Section hidden until real data is available */}
 
+            {/* Kapsul Waktu Banner */}
+            <section
+              className="relative group overflow-hidden rounded-[2rem] p-6 cursor-pointer transition-all duration-300 hover:scale-[1.02] active:scale-98"
+              onClick={() => window.open(`/portal/kapsul-waktu/${siswa.nisn}`, "_blank")}
+              style={{
+                background: "linear-gradient(135deg, rgba(139,92,246,0.15) 0%, rgba(6,182,212,0.15) 100%)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                boxShadow: "0 8px 32px rgba(139,92,246,0.1)",
+              }}
+            >
+              {/* Subtle light effects inside */}
+              <div className="absolute -right-10 -bottom-10 w-40 h-40 rounded-full bg-violet-500/10 blur-2xl group-hover:bg-violet-500/20 transition-all pointer-events-none" />
+              <div className="absolute -left-10 -top-10 w-40 h-40 rounded-full bg-cyan-500/10 blur-2xl group-hover:bg-cyan-500/20 transition-all pointer-events-none" />
+
+              <div className="relative z-10 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-violet-500 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-violet-500/30">
+                    <Clock size={26} className="animate-pulse" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 text-cyan-300">
+                      <Sparkles size={12} className="animate-pulse" />
+                      <span className="text-[10px] font-black uppercase tracking-wider">
+                        Momen Spesial
+                      </span>
+                    </div>
+                    <h3 className="text-base font-black text-white mt-1">
+                      Kapsul Waktu Kenangan
+                    </h3>
+                    <p className="text-[11px] text-white/50 mt-0.5 leading-relaxed">
+                      Buka lini masa dan kenangan indah Ananda selama sekolah di sini ✨
+                    </p>
+                  </div>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/10 group-hover:bg-white/10 transition-colors flex-shrink-0">
+                  <ChevronRight size={18} className="text-white/70" />
+                </div>
+              </div>
+            </section>
+
             {/* Live Presence Tracker */}
             <section className="relative group">
               <div className="absolute inset-0 bg-emerald-500/10 blur-xl rounded-[2rem] opacity-0 group-hover:opacity-100 transition-opacity" />
