@@ -11,6 +11,7 @@ import {
   Star, Award, Stethoscope, CalendarDays, MapPin,
 } from "lucide-react";
 import confetti from "canvas-confetti";
+import { konversiDirectLink } from "@/lib/gas";
 
 // ── Types ─────────────────────────────────────────────────────
 interface SiswaInfo {
@@ -69,6 +70,9 @@ const KELAS_ORDER = ["Kelas 1", "Kelas 2", "Kelas 3", "Kelas 4", "Kelas 5", "Kel
 
 function getFotoUrl(url?: string | null): string | null {
   if (!url) return null;
+  if (url.includes("drive.google.com") || url.includes("googleusercontent.com")) {
+    return konversiDirectLink(url);
+  }
   if (url.startsWith("http")) return url;
   return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${url}`;
 }

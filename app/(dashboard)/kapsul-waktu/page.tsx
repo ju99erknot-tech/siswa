@@ -21,6 +21,7 @@ import { SiswaPicker } from "@/components/shared/SiswaPicker";
 import { useAppStore } from "@/store/app.store";
 import { useKapsulWaktu } from "@/hooks/useKapsulWaktu";
 import { createClient } from "@/lib/supabase/client";
+import { uploadFileToGDrive, konversiDirectLink } from "@/lib/gas";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
@@ -163,12 +164,18 @@ export default function KapsulWaktuPage() {
     if (!formSiswaId) { toast.error("Pilih siswa terlebih dahulu"); return; }
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop() || "webp";
-      const path = `kapsul/${formSiswaId}/${Date.now()}.${ext}`;
-      const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
-      if (error) throw error;
-      setFormFotoUrl(path);
-      toast.success("Foto berhasil diunggah");
+      const student = getSiswa(formSiswaId);
+      const studentName = student?.nama || "Siswa";
+      const studentNisn = student?.nisn || "UNKNOWN";
+      
+      const fileUrl = await uploadFileToGDrive(
+        file,
+        `KAPSUL_${studentNisn}_${Date.now()}`,
+        studentName
+      );
+      
+      setFormFotoUrl(fileUrl);
+      toast.success("Foto berhasil diunggah ke Google Drive");
     } catch (err: unknown) {
       toast.error("Upload gagal: " + (err as Error).message);
     } finally {
@@ -225,6 +232,9 @@ export default function KapsulWaktuPage() {
 
   const getFotoPublic = (url?: string) => {
     if (!url) return null;
+    if (url.includes("drive.google.com") || url.includes("googleusercontent.com")) {
+      return konversiDirectLink(url);
+    }
     if (url.startsWith("http")) return url;
     return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${url}`;
   };
