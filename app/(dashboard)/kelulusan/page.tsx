@@ -84,6 +84,8 @@ export default function KelulusanPage() {
   const [namaMulok1, setNamaMulok1] = useState("Bahasa dan Sastra Sunda");
   const [namaMulok2, setNamaMulok2] = useState("");
   const [namaMulok3, setNamaMulok3] = useState("");
+  const [skLulusNomor, setSkLulusNomor] = useState("800/032-SD/2026");
+  const [skLulusTentang, setSkLulusTentang] = useState("Kriteria Kelulusan Peserta Didik Tahun Pelajaran 2025/2026");
 
   // Modal Input Nilai & Nomor SKL
   const [modalSiswa, setModalSiswa] = useState<SiswaKelulusan | null>(null);
@@ -110,7 +112,7 @@ export default function KelulusanPage() {
             .or("kelas.ilike.6%,kelas.ilike.VI%")
             .order("kelas")
             .order("nama"),
-          supabase.from("pengaturan").select("id, portal_kelulusan_aktif, tanggal_pengumuman, pesan_kelulusan, tanggal_kelulusan, nama_mulok1, nama_mulok2, nama_mulok3").single(),
+          supabase.from("pengaturan").select("id, portal_kelulusan_aktif, tanggal_pengumuman, pesan_kelulusan, tanggal_kelulusan, nama_mulok1, nama_mulok2, nama_mulok3, sk_lulus_nomor, sk_lulus_tentang").single(),
         ]);
 
         if (siswaRes.error) {
@@ -132,6 +134,8 @@ export default function KelulusanPage() {
           setNamaMulok1(pengaturan.nama_mulok1 || "Bahasa dan Sastra Sunda");
           setNamaMulok2(pengaturan.nama_mulok2 || "");
           setNamaMulok3(pengaturan.nama_mulok3 || "");
+          setSkLulusNomor(pengaturan.sk_lulus_nomor || "800/032-SD/2026");
+          setSkLulusTentang(pengaturan.sk_lulus_tentang || "Kriteria Kelulusan Peserta Didik Tahun Pelajaran 2025/2026");
         }
       } catch (err: any) {
         toast.error("Terjadi kesalahan koneksi database.");
@@ -235,6 +239,8 @@ export default function KelulusanPage() {
       nama_mulok1: namaMulok1 || null,
       nama_mulok2: namaMulok2 || null,
       nama_mulok3: namaMulok3 || null,
+      sk_lulus_nomor: skLulusNomor || null,
+      sk_lulus_tentang: skLulusTentang || null,
     };
 
     const { data: updated, error } = await supabase
@@ -529,6 +535,28 @@ export default function KelulusanPage() {
                 className="w-full h-11 px-3 rounded-xl text-sm text-white/80 outline-none"
                 style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.08)" }} />
               <p className="text-[10px] text-white/25 mt-2">Opsional mapel tambahan</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t border-white/5">
+            {/* Nomor SK Kelulusan */}
+            <div className="p-4 rounded-xl" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+              <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3">Nomor SK Kelulusan</p>
+              <input type="text" value={skLulusNomor} onChange={e => setSkLulusNomor(e.target.value)}
+                placeholder="800/032-SD/2026"
+                className="w-full h-11 px-3 rounded-xl text-sm text-white/80 outline-none"
+                style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.08)" }} />
+              <p className="text-[10px] text-white/25 mt-2">Nomor Surat Keputusan Kepala Sekolah</p>
+            </div>
+
+            {/* Tentang SK Kelulusan */}
+            <div className="p-4 rounded-xl" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+              <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3">Tentang SK Kelulusan</p>
+              <input type="text" value={skLulusTentang} onChange={e => setSkLulusTentang(e.target.value)}
+                placeholder="Kriteria Kelulusan Peserta Didik Tahun Pelajaran 2025/2026"
+                className="w-full h-11 px-3 rounded-xl text-sm text-white/80 outline-none"
+                style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.08)" }} />
+              <p className="text-[10px] text-white/25 mt-2">Isi perihal SK yang tercetak di SKL</p>
             </div>
           </div>
         </div>

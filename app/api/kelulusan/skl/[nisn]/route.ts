@@ -73,6 +73,8 @@ export async function GET(
       nama_mulok1: pengaturan.nama_mulok1,
       nama_mulok2: pengaturan.nama_mulok2,
       nama_mulok3: pengaturan.nama_mulok3,
+      sk_lulus_nomor: pengaturan.sk_lulus_nomor,
+      sk_lulus_tentang: pengaturan.sk_lulus_tentang,
     });
   } catch {
     return NextResponse.json({ error: "Server error" }, { status: 500 });

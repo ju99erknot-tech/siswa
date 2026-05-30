@@ -53,6 +53,8 @@ export async function GET(req: Request) {
       nama_mulok1: pengaturan?.nama_mulok1 || "Bahasa dan Sastra Sunda",
       nama_mulok2: pengaturan?.nama_mulok2 || null,
       nama_mulok3: pengaturan?.nama_mulok3 || null,
+      sk_lulus_nomor: pengaturan?.sk_lulus_nomor || null,
+      sk_lulus_tentang: pengaturan?.sk_lulus_tentang || null,
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || "Server error" }, { status: 500 });

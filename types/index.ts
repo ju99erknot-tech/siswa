@@ -246,6 +246,8 @@ export interface Pengaturan {
   lat_sekolah?: string;
   lng_sekolah?: string;
   custom_mapel?: string[];
+  sk_lulus_nomor?: string;
+  sk_lulus_tentang?: string;
 }
 
 // ── PIP (Program Indonesia Pintar) ────────────────────────────

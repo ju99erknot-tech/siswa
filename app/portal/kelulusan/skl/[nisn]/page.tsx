@@ -28,6 +28,8 @@ interface SklData {
   nama_mulok1?: string;
   nama_mulok2?: string;
   nama_mulok3?: string;
+  sk_lulus_nomor?: string;
+  sk_lulus_tentang?: string;
 }
 
 function terbilangAngka(n: number): string {
@@ -208,7 +210,7 @@ export default function ESklPage() {
           </div>
           <div class="isi-surat">
             <p>Yang bertanda tangan di bawah ini Kepala ${data.nama_sekolah} Kabupaten Sukabumi Provinsi Jawa Barat, menerangkan bahwa :</p>
-            <p>berdasarkan Surat Keputusan Kepala ${data.nama_sekolah} nomor ${SCHOOL.skLulusNomor} tentang ${SCHOOL.skLulusTentang}, menerangkan nama peserta didik di bawah ini:</p>
+            <p>berdasarkan Surat Keputusan Kepala ${data.nama_sekolah} nomor ${data.sk_lulus_nomor || SCHOOL.skLulusNomor} tentang ${data.sk_lulus_tentang || SCHOOL.skLulusTentang}, menerangkan nama peserta didik di bawah ini:</p>
             <table class="identitas-table">
               <tr><td width="35%">Nama</td><td width="2%">:</td><td style="font-weight:bold;text-transform:uppercase">${siswa.nama}</td></tr>
               <tr><td>Tempat Tanggal Lahir</td><td>:</td><td>${siswa.tempat_lahir || "-"}, ${tglLahirFormatted}</td></tr>
@@ -360,7 +362,7 @@ export default function ESklPage() {
           </div>
           <div className="isi-surat">
             <p>Yang bertanda tangan di bawah ini Kepala {data.nama_sekolah} Kabupaten Sukabumi Provinsi Jawa Barat, menerangkan bahwa :</p>
-            <p>berdasarkan Surat Keputusan Kepala {data.nama_sekolah} nomor {SCHOOL.skLulusNomor} tentang {SCHOOL.skLulusTentang}, menerangkan nama peserta didik di bawah ini:</p>
+            <p>berdasarkan Surat Keputusan Kepala {data.nama_sekolah} nomor {data.sk_lulus_nomor || SCHOOL.skLulusNomor} tentang {data.sk_lulus_tentang || SCHOOL.skLulusTentang}, menerangkan nama peserta didik di bawah ini:</p>
             <table className="identitas-table">
               <tbody>
                 <tr>
