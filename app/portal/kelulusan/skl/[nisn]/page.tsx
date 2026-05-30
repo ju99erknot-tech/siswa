@@ -498,47 +498,53 @@ export default function ESklPage() {
             ))}
           </div>
 
-          {/* Grades Table */}
-          <div className="rounded-2xl border border-white/5 overflow-hidden" style={{ background: "rgba(0,0,0,0.2)" }}>
-            <div className="px-4 py-3 bg-white/5 border-b border-white/5 flex items-center justify-between">
-              <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">Daftar Nilai Asesmen</span>
-              <span className="text-xs font-mono font-bold text-emerald-400">
-                Rata-Rata: {(() => {
+          {/* Nilai Rata-Rata Box */}
+          <div className="p-4 rounded-2xl flex items-center justify-between border border-amber-500/20 bg-amber-500/5">
+            <div className="min-w-0 pr-3">
+              <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider">Nilai Rata-Rata Asesmen</h4>
+              <p className="text-[10px] text-white/40 capitalize mt-1 leading-snug">
+                {(() => {
                   let sum = 0, count = 0;
                   const n = siswa.nilai_kelulusan || {};
-                  Object.values(n).forEach(v => {
+                  const mapels = [
+                    { key: "pai" }, { key: "ppkn" }, { key: "indo" }, { key: "mtk" },
+                    { key: "ipas" }, { key: "sbdp" }, { key: "pjok" }, { key: "bing" },
+                    { key: "mulok1" }
+                  ];
+                  if (data.nama_mulok2) mapels.push({ key: "mulok2" });
+                  if (data.nama_mulok3) mapels.push({ key: "mulok3" });
+                  mapels.forEach(m => {
+                    const v = n[m.key];
                     if (v && v.trim() !== "") {
                       const num = parseFloat(v.replace(",", "."));
                       if (!isNaN(num)) { sum += num; count++; }
                     }
                   });
-                  return count > 0 ? (sum / count).toFixed(2).replace(".", ",") : "0,00";
+                  const avgVal = count > 0 ? (sum / count).toFixed(2).replace(".", ",") : "0,00";
+                  return terbilangRataRata(avgVal);
                 })()}
-              </span>
+              </p>
             </div>
-            <div className="max-h-[250px] overflow-y-auto divide-y divide-white/[0.03]">
-              {[
-                { label: "Pendidikan Agama dan Budi Pekerti", key: "pai" },
-                { label: "Pendidikan Pancasila", key: "ppkn" },
-                { label: "Bahasa Indonesia", key: "indo" },
-                { label: "Matematika", key: "mtk" },
-                { label: "Ilmu Pengetahuan Alam dan Sosial (IPAS)", key: "ipas" },
-                { label: "Seni Budaya dan Prakarya : Seni Rupa", key: "sbdp" },
-                { label: "Pendidikan Jasmani, Olahraga & Kesehatan", key: "pjok" },
-                { label: "Bahasa Inggris", key: "bing" },
-                { label: `Muatan Lokal : ${data.nama_mulok1 || "Bahasa Sunda"}`, key: "mulok1" },
-                ...(data.nama_mulok2 ? [{ label: `Muatan Lokal : ${data.nama_mulok2}`, key: "mulok2" }] : []),
-                ...(data.nama_mulok3 ? [{ label: `Muatan Lokal : ${data.nama_mulok3}`, key: "mulok3" }] : []),
-              ].map(subj => {
-                const val = siswa.nilai_kelulusan?.[subj.key];
-                const formatted = val ? parseFloat(val).toFixed(2).replace(".", ",") : "—";
-                return (
-                  <div key={subj.key} className="flex justify-between items-center px-4 py-2 text-xs">
-                    <span className="text-white/60">{subj.label}</span>
-                    <span className="font-mono font-bold text-white/95">{formatted}</span>
-                  </div>
-                );
-              })}
+            <div className="text-2xl font-black text-amber-400 shrink-0">
+              {(() => {
+                let sum = 0, count = 0;
+                const n = siswa.nilai_kelulusan || {};
+                const mapels = [
+                  { key: "pai" }, { key: "ppkn" }, { key: "indo" }, { key: "mtk" },
+                  { key: "ipas" }, { key: "sbdp" }, { key: "pjok" }, { key: "bing" },
+                  { key: "mulok1" }
+                ];
+                if (data.nama_mulok2) mapels.push({ key: "mulok2" });
+                if (data.nama_mulok3) mapels.push({ key: "mulok3" });
+                mapels.forEach(m => {
+                  const v = n[m.key];
+                  if (v && v.trim() !== "") {
+                    const num = parseFloat(v.replace(",", "."));
+                    if (!isNaN(num)) { sum += num; count++; }
+                  }
+                });
+                return count > 0 ? (sum / count).toFixed(2).replace(".", ",") : "0,00";
+              })()}
             </div>
           </div>
 
