@@ -95,7 +95,7 @@ export default function KelulusanPage() {
 
   // Modal Bulk Generate Nomor SKL
   const [showBulkNumberModal, setShowBulkNumberModal] = useState(false);
-  const [bulkTemplate, setBulkTemplate] = useState("421.2/{seq}/Sket-SD/VI/2026");
+  const [bulkTemplate, setBulkTemplate] = useState("400.3.11/{seq}/........./2026");
   const [bulkStartNum, setBulkStartNum] = useState(1);
   const [bulkPadding, setBulkPadding] = useState(3);
   const [bulkSort, setBulkSort] = useState<"nama" | "nisn">("nama");
@@ -737,7 +737,7 @@ export default function KelulusanPage() {
               <div className="space-y-1.5">
                 <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest pl-1">Nomor Surat Keterangan Kelulusan (SKL)</label>
                 <input type="text" value={modalNomorSkl} onChange={e => setModalNomorSkl(e.target.value)}
-                  placeholder="Contoh: 001/421.2/Sket-SD/VI/2026"
+                  placeholder="Contoh: 400.3.11/001/........./2026"
                   className="w-full h-11 px-4 rounded-xl text-sm text-white outline-none focus:ring-2 focus:ring-amber-500/20"
                   style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.08)" }} />
               </div>
@@ -821,7 +821,7 @@ export default function KelulusanPage() {
               <div className="space-y-1.5">
                 <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest pl-1">Template Format Nomor</label>
                 <input type="text" value={bulkTemplate} onChange={e => setBulkTemplate(e.target.value)}
-                  placeholder="Contoh: 421.2/{seq}/Sket-SD/VI/2026"
+                  placeholder="Contoh: 400.3.11/{seq}/........./2026"
                   className="w-full h-11 px-4 rounded-xl text-sm text-white outline-none focus:ring-2 focus:ring-amber-500/20"
                   style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.08)" }} />
                 <p className="text-[9px] text-white/30 italic">Gunakan tag <b>{`{seq}`}</b> untuk penomoran berurutan</p>

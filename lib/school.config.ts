@@ -23,6 +23,8 @@ export const SCHOOL = {
     const currentMonth = new Date().getMonth() + 1; // 1-12
     return currentMonth >= 7 && currentMonth <= 12 ? "Ganjil" : "Genap";
   })(),
+  skLulusNomor: process.env.NEXT_PUBLIC_SK_LULUS_NOMOR || "800/032-SD/2026",
+  skLulusTentang: process.env.NEXT_PUBLIC_SK_LULUS_TENTANG || "Kriteria Kelulusan Peserta Didik Tahun Pelajaran 2025/2026",
 } as const;
 
 export const BRAND = {
