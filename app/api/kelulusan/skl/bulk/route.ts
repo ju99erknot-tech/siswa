@@ -55,6 +55,7 @@ export async function GET(req: Request) {
       nama_mulok3: pengaturan?.nama_mulok3 || null,
       sk_lulus_nomor: pengaturan?.sk_lulus_nomor || null,
       sk_lulus_tentang: pengaturan?.sk_lulus_tentang || null,
+      format_skl: pengaturan?.format_skl || "format_1",
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || "Server error" }, { status: 500 });

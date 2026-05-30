@@ -248,6 +248,7 @@ export interface Pengaturan {
   custom_mapel?: string[];
   sk_lulus_nomor?: string;
   sk_lulus_tentang?: string;
+  format_skl?: string;
 }
 
 // ── PIP (Program Indonesia Pintar) ────────────────────────────

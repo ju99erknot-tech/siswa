@@ -30,6 +30,7 @@ interface SklData {
   nama_mulok3?: string;
   sk_lulus_nomor?: string;
   sk_lulus_tentang?: string;
+  format_skl?: string;
 }
 
 function terbilangAngka(n: number): string {
@@ -172,6 +173,36 @@ export default function ESklPage() {
       return found?.trim() || SCHOOL.kota;
     })();
 
+    const isFormat1 = data.format_skl !== "format_2";
+
+    const formatNilaiVal = (key: string) => {
+      const v = n[key];
+      if (v === undefined || v === null || v.trim() === "") return "-";
+      return parseFloat(v.replace(",", ".")).toFixed(2).replace(".", ",");
+    };
+
+    const mapelList = [
+      { no: "1.", nama: "Pendidikan Agama dan Budi Pekerti", key: "pai" },
+      { no: "2.", nama: "Pendidikan Pancasila", key: "ppkn" },
+      { no: "3.", nama: "Bahasa Indonesia", key: "indo" },
+      { no: "4.", nama: "Matematika", key: "mtk" },
+      { no: "5.", nama: "Ilmu Pengetahuan Alam dan Sosial (IPAS)", key: "ipas" },
+      { no: "6.", nama: "Seni Budaya dan Prakarya", key: "sbdp" },
+      { no: "7.", nama: "Pendidikan Jasmani, Olahraga & Kesehatan", key: "pjok" },
+      { no: "8.", nama: "Bahasa Inggris", key: "bing" },
+      { no: "9.", nama: `Muatan Lokal : ${data.nama_mulok1 || "Bahasa Sunda"}`, key: "mulok1" }
+    ];
+    if (data.nama_mulok2) mapelList.push({ no: "10.", nama: `Muatan Lokal : ${data.nama_mulok2}`, key: "mulok2" });
+    if (data.nama_mulok3) mapelList.push({ no: "11.", nama: `Muatan Lokal : ${data.nama_mulok3}`, key: "mulok3" });
+
+    const mapelRows = mapelList.map(m => `
+      <tr>
+        <td style="text-align: center;">${m.no}</td>
+        <td>${m.nama}</td>
+        <td style="text-align: center; font-weight: bold;">${formatNilaiVal(m.key)}</td>
+      </tr>
+    `).join("");
+
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
     printWindow.document.write(`
@@ -188,7 +219,9 @@ export default function ESklPage() {
         .isi-surat { text-align: justify; line-height: 1.6; font-size: 12pt; }
         .identitas-table { margin-left: 30px; width: 90%; margin-top: 15px; margin-bottom: 15px; }
         .identitas-table td { padding: 4px 0; vertical-align: top; }
-        
+        .nilai-table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 11pt; color: #000; }
+        .nilai-table th, .nilai-table td { border: 1px solid black; padding: 5px 10px; color: #000; }
+        .nilai-table th { text-align: center; background-color: #f2f2f2; }
         .footer-box { margin-top: 50px; display: flex; justify-content: space-between; align-items: flex-end; }
         .qr-box { text-align: center; padding: 5px; border: 1px solid #ddd; border-radius: 6px; display: inline-block; }
         .qr-box p { font-size: 7px; color: #888; margin: 3px 0 0 0; font-family: sans-serif; }
@@ -196,30 +229,80 @@ export default function ESklPage() {
         .ttd-name { font-weight: bold; text-decoration: underline; text-transform: uppercase; margin-top: 75px; }
         .no-print { position: fixed; top: 20px; right: 20px; z-index: 1000; display: flex; gap: 10px; }
         .btn { background: #D4A843; color: white; padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        @media print { body { background: white; padding: 0; } .surat-page { margin: 0; box-shadow: none; padding: 5mm 10mm; } .no-print { display: none !important; } }
+        /* Compact overrides for Format 1 (with grades table) */
+        .compact { padding: 12mm 18mm; }
+        .compact .kop-surat { margin-bottom: 14px; }
+        .compact .kop-surat img { max-height: 130px; }
+        .compact .judul-box { margin: 18px 0; }
+        .compact .judul-box h2 { font-size: 13pt; }
+        .compact .judul-box p { margin: 3px 0 0 0; font-size: 11pt; }
+        .compact .isi-surat { line-height: 1.4; font-size: 11.5pt; }
+        .compact .identitas-table { margin-top: 10px; margin-bottom: 10px; }
+        .compact .identitas-table td { padding: 2px 0; }
+        .compact .nilai-table { margin: 10px 0; font-size: 10.5pt; }
+        .compact .nilai-table th, .compact .nilai-table td { padding: 3px 8px; }
+        .compact .footer-box { margin-top: 30px; }
+        .compact .ttd-box { font-size: 11pt; }
+        .compact .ttd-name { margin-top: 60px; }
+        @media print { body { background: white; padding: 0; } .surat-page { margin: 0; box-shadow: none; padding: 5mm 10mm; min-height: auto; } .compact { padding: 5mm 10mm; } .no-print { display: none !important; } }
       </style></head><body>
         <div class="no-print">
           <button class="btn" onclick="window.print()">🖨️ Cetak Sekarang</button>
           <button class="btn" style="background:#64748b" onclick="window.close()">Tutup</button>
         </div>
-        <div class="surat-page">
+        <div class="surat-page ${isFormat1 ? 'compact' : ''}">
           <div class="kop-surat"><img src="${data.kop_surat_url || 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgHJHdzvsrvzHVMFsAmI_Ra_4vlYn39plogGMmNIUO7MV71T8zT9YWUFQyO5UD6oeSQ7jew1exTAXcI24JwK3eBiokcmNppHqGjvq70RTfjeYdZAhIahHq0D8m2Jrixl_8bb6BaFGhm0xpov4cojZ_ydeyOtE1xM7wrxn7FSMy0EP5KTuyqWVscaIkCyN3T/s955/KOP%20Baru.png'}" alt="KOP" /></div>
           <div class="judul-box">
             <h2>SURAT KETERANGAN LULUS</h2>
+            ${isFormat1 ? `<p>Tahun Pelajaran ${data.tahun_ajaran}</p>` : ``}
             <p>Nomor : ${siswa.nomor_skl || "400.3.11/...../........./2026"}</p>
           </div>
           <div class="isi-surat">
-            <p>Yang bertanda tangan di bawah ini Kepala ${data.nama_sekolah} Kabupaten Sukabumi Provinsi Jawa Barat, menerangkan bahwa :</p>
-            <p>berdasarkan Surat Keputusan Kepala ${data.nama_sekolah} nomor ${data.sk_lulus_nomor || SCHOOL.skLulusNomor} tentang ${data.sk_lulus_tentang || SCHOOL.skLulusTentang}, menerangkan nama peserta didik di bawah ini:</p>
+            ${isFormat1 ? `
+              <p>Yang bertanda tangan di bawah ini, Kepala ${data.nama_sekolah}, Nomor Pokok Sekolah Nasional ${data.npsn || SCHOOL.npsn} Kabupaten Sukabumi, menerangkan bahwa :</p>
+            ` : `
+              <p>Yang bertanda tangan di bawah ini Kepala ${data.nama_sekolah} Kabupaten Sukabumi Provinsi Jawa Barat, menerangkan bahwa :</p>
+              <p>berdasarkan Surat Keputusan Kepala ${data.nama_sekolah} nomor ${data.sk_lulus_nomor || SCHOOL.skLulusNomor} tentang ${data.sk_lulus_tentang || SCHOOL.skLulusTentang}, menerangkan nama peserta didik di bawah ini:</p>
+            `}
+            
             <table class="identitas-table">
-              <tr><td width="35%">Nama</td><td width="2%">:</td><td style="font-weight:bold;text-transform:uppercase">${siswa.nama}</td></tr>
-              <tr><td>Tempat Tanggal Lahir</td><td>:</td><td>${siswa.tempat_lahir || "-"}, ${tglLahirFormatted}</td></tr>
-              <tr><td>NISN</td><td>:</td><td><b>${siswa.nisn}</b></td></tr>
+              ${isFormat1 ? `
+                <tr><td width="35%">Nama</td><td width="2%">:</td><td style="font-weight:bold;text-transform:uppercase">${siswa.nama}</td></tr>
+                <tr><td>Tempat Tanggal Lahir</td><td>:</td><td>${siswa.tempat_lahir || "-"}, ${tglLahirFormatted}</td></tr>
+                <tr><td>Nama Orang Tua/Wali</td><td>:</td><td>${siswa.nama_ayah || siswa.nama_ibu || "-"}</td></tr>
+                <tr><td>Nomor Induk Siswa</td><td>:</td><td>${siswa.nis || "-"}</td></tr>
+                <tr><td>Nomor Induk Siswa Nasional</td><td>:</td><td><b>${siswa.nisn}</b></td></tr>
+              ` : `
+                <tr><td width="35%">Nama</td><td width="2%">:</td><td style="font-weight:bold;text-transform:uppercase">${siswa.nama}</td></tr>
+                <tr><td>Tempat Tanggal Lahir</td><td>:</td><td>${siswa.tempat_lahir || "-"}, ${tglLahirFormatted}</td></tr>
+                <tr><td>NISN</td><td>:</td><td><b>${siswa.nisn}</b></td></tr>
+              `}
             </table>
             
-            <p>Dinyatakan <b>LULUS</b> dari ${data.nama_sekolah} tahun ajaran ${data.tahun_ajaran} setelah memenuhi kriteria sesuai peraturan perundangan, dengan nilai rata-rata <b>${avgVal}</b> (<i>${avgTerbilang}</i>).</p>
+            ${isFormat1 ? `
+              <div style="text-align: center; font-weight: bold; font-style: italic; margin-top: 15px; margin-bottom: 15px; font-size: 13pt;">L U L U S</div>
+              <p>dari ${data.nama_sekolah} pada tanggal ${formattedTglKelulusan}, setelah memenuhi kriteria sesuai dengan peraturan perundang-undangan dengan nilai sebagai berikut:</p>
+              <table class="nilai-table">
+                <thead>
+                  <tr>
+                    <th style="width: 8%;">No</th>
+                    <th style="width: 62%;">Mata Pelajaran</th>
+                    <th style="width: 30%;">Nilai</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${mapelRows}
+                  <tr style="background-color: #f2f2f2;">
+                    <td colspan="2" style="text-align: center; font-weight: bold;">Rata - Rata</td>
+                    <td style="text-align: center; font-weight: bold; font-size: 11.5pt;">${avgVal}</td>
+                  </tr>
+                </tbody>
+              </table>
+            ` : `
+              <p>Dinyatakan <b>LULUS</b> dari ${data.nama_sekolah} tahun ajaran ${data.tahun_ajaran} setelah memenuhi kriteria sesuai peraturan perundangan, dengan nilai rata-rata <b>${avgVal}</b> (<i>${avgTerbilang}</i>).</p>
+            `}
             
-            <p style="margin-top: 20px;">Demikian Surat Keterangan ini dibuat sebagai salah satu syarat dalam penerimaan murid baru.</p>
+            ${!isFormat1 ? `<p style="margin-top: 20px;">Demikian Surat Keterangan ini dibuat sebagai salah satu syarat dalam penerimaan murid baru.</p>` : ``}
           </div>
           
           <div class="footer-box">
@@ -312,6 +395,28 @@ export default function ESklPage() {
       return found?.trim() || SCHOOL.kota;
     })();
 
+    const isFormat1 = data.format_skl !== "format_2";
+
+    const formatNilaiVal = (key: string) => {
+      const v = n[key];
+      if (v === undefined || v === null || v.trim() === "") return "-";
+      return parseFloat(v.replace(",", ".")).toFixed(2).replace(".", ",");
+    };
+
+    const mapelList = [
+      { no: "1.", nama: "Pendidikan Agama dan Budi Pekerti", key: "pai" },
+      { no: "2.", nama: "Pendidikan Pancasila", key: "ppkn" },
+      { no: "3.", nama: "Bahasa Indonesia", key: "indo" },
+      { no: "4.", nama: "Matematika", key: "mtk" },
+      { no: "5.", nama: "Ilmu Pengetahuan Alam dan Sosial (IPAS)", key: "ipas" },
+      { no: "6.", nama: "Seni Budaya dan Prakarya", key: "sbdp" },
+      { no: "7.", nama: "Pendidikan Jasmani, Olahraga & Kesehatan", key: "pjok" },
+      { no: "8.", nama: "Bahasa Inggris", key: "bing" },
+      { no: "9.", nama: `Muatan Lokal : ${data.nama_mulok1 || "Bahasa Sunda"}`, key: "mulok1" }
+    ];
+    if (data.nama_mulok2) mapelList.push({ no: "10.", nama: `Muatan Lokal : ${data.nama_mulok2}`, key: "mulok2" });
+    if (data.nama_mulok3) mapelList.push({ no: "11.", nama: `Muatan Lokal : ${data.nama_mulok3}`, key: "mulok3" });
+
     return (
       <div className="print-layout-container">
         <style dangerouslySetInnerHTML={{ __html: `
@@ -327,7 +432,9 @@ export default function ESklPage() {
           .isi-surat { text-align: justify; line-height: 1.6; font-size: 12pt; color: #000; }
           .identitas-table { margin-left: 30px; width: 90%; margin-top: 15px; margin-bottom: 15px; color: #000; }
           .identitas-table td { padding: 4px 0; vertical-align: top; color: #000; }
-          
+          .nilai-table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 11pt; color: #000; }
+          .nilai-table th, .nilai-table td { border: 1px solid black; padding: 5px 10px; color: #000; }
+          .nilai-table th { text-align: center; background-color: #f2f2f2; }
           .footer-box { margin-top: 50px; display: flex; justify-content: space-between; align-items: flex-end; color: #000; }
           .qr-box { text-align: center; padding: 5px; border: 1px solid #ddd; border-radius: 6px; display: inline-block; background: white; }
           .qr-box p { font-size: 7px; color: #888; margin: 3px 0 0 0; font-family: sans-serif; }
@@ -335,6 +442,21 @@ export default function ESklPage() {
           .ttd-name { font-weight: bold; text-decoration: underline; text-transform: uppercase; margin-top: 75px; color: #000; }
           .no-print { position: fixed; top: 20px; right: 20px; z-index: 1000; display: flex; gap: 10px; }
           .btn { background: #D4A843; color: white; padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+          /* Compact overrides for Format 1 */
+          .compact { padding: 12mm 18mm; }
+          .compact .kop-surat { margin-bottom: 14px; }
+          .compact .kop-surat img { max-height: 130px; }
+          .compact .judul-box { margin: 18px 0; }
+          .compact .judul-box h2 { font-size: 13pt; }
+          .compact .judul-box p { margin: 3px 0 0 0; font-size: 11pt; }
+          .compact .isi-surat { line-height: 1.4; font-size: 11.5pt; }
+          .compact .identitas-table { margin-top: 10px; margin-bottom: 10px; }
+          .compact .identitas-table td { padding: 2px 0; }
+          .compact .nilai-table { margin: 10px 0; font-size: 10.5pt; }
+          .compact .nilai-table th, .compact .nilai-table td { padding: 3px 8px; }
+          .compact .footer-box { margin-top: 30px; }
+          .compact .ttd-box { font-size: 11pt; }
+          .compact .ttd-name { margin-top: 60px; }
           @media print { 
             html, html.dark, body, body.dark, .print-layout-container { 
               background: white !important; 
@@ -344,7 +466,8 @@ export default function ESklPage() {
               padding: 0 !important; 
               margin: 0 !important; 
             } 
-            .surat-page { margin: 0 auto !important; box-shadow: none !important; padding: 5mm 10mm !important; } 
+            .surat-page { margin: 0 auto !important; box-shadow: none !important; padding: 5mm 10mm !important; min-height: auto !important; } 
+            .compact { padding: 5mm 10mm !important; }
             .no-print { display: none !important; } 
           }
         ` }} />
@@ -352,40 +475,111 @@ export default function ESklPage() {
           <button className="btn" onClick={() => window.print()}>🖨️ Cetak Sekarang</button>
           <button className="btn" style={{ background: "#64748b" }} onClick={() => window.close()}>Tutup</button>
         </div>
-        <div className="surat-page">
+        <div className={`surat-page ${isFormat1 ? 'compact' : ''}`}>
           <div className="kop-surat">
             <img src={data.kop_surat_url || 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgHJHdzvsrvzHVMFsAmI_Ra_4vlYn39plogGMmNIUO7MV71T8zT9YWUFQyO5UD6oeSQ7jew1exTAXcI24JwK3eBiokcmNppHqGjvq70RTfjeYdZAhIahHq0D8m2Jrixl_8bb6BaFGhm0xpov4cojZ_ydeyOtE1xM7wrxn7FSMy0EP5KTuyqWVscaIkCyN3T/s955/KOP%20Baru.png'} alt="KOP" />
           </div>
           <div className="judul-box">
             <h2>SURAT KETERANGAN LULUS</h2>
+            {isFormat1 && <p>Tahun Pelajaran {data.tahun_ajaran}</p>}
             <p>Nomor : {siswa.nomor_skl || "400.3.11/...../........./2026"}</p>
           </div>
           <div className="isi-surat">
-            <p>Yang bertanda tangan di bawah ini Kepala {data.nama_sekolah} Kabupaten Sukabumi Provinsi Jawa Barat, menerangkan bahwa :</p>
-            <p>berdasarkan Surat Keputusan Kepala {data.nama_sekolah} nomor {data.sk_lulus_nomor || SCHOOL.skLulusNomor} tentang {data.sk_lulus_tentang || SCHOOL.skLulusTentang}, menerangkan nama peserta didik di bawah ini:</p>
+            {isFormat1 ? (
+              <p>Yang bertanda tangan di bawah ini, Kepala {data.nama_sekolah}, Nomor Pokok Sekolah Nasional {data.npsn || "-"} Kabupaten Sukabumi, menerangkan bahwa :</p>
+            ) : (
+              <>
+                <p>Yang bertanda tangan di bawah ini Kepala {data.nama_sekolah} Kabupaten Sukabumi Provinsi Jawa Barat, menerangkan bahwa :</p>
+                <p>berdasarkan Surat Keputusan Kepala {data.nama_sekolah} nomor {data.sk_lulus_nomor || SCHOOL.skLulusNomor} tentang {data.sk_lulus_tentang || SCHOOL.skLulusTentang}, menerangkan nama peserta didik di bawah ini:</p>
+              </>
+            )}
+            
             <table className="identitas-table">
               <tbody>
-                <tr>
-                  <td width="35%">Nama</td>
-                  <td width="2%">:</td>
-                  <td style={{ fontWeight: "bold", textTransform: "uppercase" }}>{siswa.nama}</td>
-                </tr>
-                <tr>
-                  <td>Tempat Tanggal Lahir</td>
-                  <td>:</td>
-                  <td>{siswa.tempat_lahir || "-"}, {tglLahirFormatted}</td>
-                </tr>
-                <tr>
-                  <td>NISN</td>
-                  <td>:</td>
-                  <td><b>{siswa.nisn}</b></td>
-                </tr>
+                {isFormat1 ? (
+                  <>
+                    <tr>
+                      <td width="35%">Nama</td>
+                      <td width="2%">:</td>
+                      <td style={{ fontWeight: "bold", textTransform: "uppercase" }}>{siswa.nama}</td>
+                    </tr>
+                    <tr>
+                      <td>Tempat Tanggal Lahir</td>
+                      <td>:</td>
+                      <td>{siswa.tempat_lahir || "-"}, {tglLahirFormatted}</td>
+                    </tr>
+                    <tr>
+                      <td>Nama Orang Tua/Wali</td>
+                      <td>:</td>
+                      <td>{siswa.nama_ayah || siswa.nama_ibu || "-"}</td>
+                    </tr>
+                    <tr>
+                      <td>Nomor Induk Siswa</td>
+                      <td>:</td>
+                      <td>{siswa.nis || "-"}</td>
+                    </tr>
+                    <tr>
+                      <td>Nomor Induk Siswa Nasional</td>
+                      <td>:</td>
+                      <td><b>{siswa.nisn}</b></td>
+                    </tr>
+                  </>
+                ) : (
+                  <>
+                    <tr>
+                      <td width="35%">Nama</td>
+                      <td width="2%">:</td>
+                      <td style={{ fontWeight: "bold", textTransform: "uppercase" }}>{siswa.nama}</td>
+                    </tr>
+                    <tr>
+                      <td>Tempat Tanggal Lahir</td>
+                      <td>:</td>
+                      <td>{siswa.tempat_lahir || "-"}, {tglLahirFormatted}</td>
+                    </tr>
+                    <tr>
+                      <td>NISN</td>
+                      <td>:</td>
+                      <td><b>{siswa.nisn}</b></td>
+                    </tr>
+                  </>
+                )}
               </tbody>
             </table>
             
-            <p>Dinyatakan <b>LULUS</b> dari {data.nama_sekolah} tahun ajaran {data.tahun_ajaran} setelah memenuhi kriteria sesuai peraturan perundangan, dengan nilai rata-rata <b>{avgVal}</b> (<i>{avgTerbilang}</i>).</p>
+            {isFormat1 ? (
+              <>
+                <div style={{ textAlign: "center", fontWeight: "bold", fontStyle: "italic", marginTop: "15px", marginBottom: "15px", fontSize: "13pt" }}>L U L U S</div>
+                <p>dari {data.nama_sekolah} pada tanggal {formattedTglKelulusan}, setelah memenuhi kriteria sesuai dengan peraturan perundang-undangan dengan nilai sebagai berikut:</p>
+                <table className="nilai-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: "8%" }}>No</th>
+                      <th style={{ width: "62%" }}>Mata Pelajaran</th>
+                      <th style={{ width: "30%" }}>Nilai</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {mapelList.map((m, index) => (
+                      <tr key={index}>
+                        <td style={{ textAlign: "center" }}>{m.no}</td>
+                        <td>{m.nama}</td>
+                        <td style={{ textAlign: "center", fontWeight: "bold" }}>{formatNilaiVal(m.key)}</td>
+                      </tr>
+                    ))}
+                    <tr style={{ backgroundColor: "#f2f2f2" }}>
+                      <td colSpan={2} style={{ textAlign: "center", fontWeight: "bold" }}>Rata - Rata</td>
+                      <td style={{ textAlign: "center", fontWeight: "bold", fontSize: "11.5pt" }}>{avgVal}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </>
+            ) : (
+              <p>Dinyatakan <b>LULUS</b> dari {data.nama_sekolah} tahun ajaran {data.tahun_ajaran} setelah memenuhi kriteria sesuai peraturan perundangan, dengan nilai rata-rata <b>{avgVal}</b> (<i>{avgTerbilang}</i>).</p>
+            )}
             
-            <p style={{ marginTop: "20px" }}>Demikian Surat Keterangan ini dibuat sebagai salah satu syarat dalam penerimaan murid baru.</p>
+            {!isFormat1 && (
+              <p style={{ marginTop: "20px" }}>Demikian Surat Keterangan ini dibuat sebagai salah satu syarat dalam penerimaan murid baru.</p>
+            )}
           </div>
           
           <div className="footer-box">
@@ -501,10 +695,85 @@ export default function ESklPage() {
           </div>
 
           {/* Nilai Rata-Rata Box */}
-          <div className="p-4 rounded-2xl flex items-center justify-between border border-amber-500/20 bg-amber-500/5">
-            <div className="min-w-0 pr-3">
-              <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider">Nilai Rata-Rata Asesmen</h4>
-              <p className="text-[10px] text-white/40 capitalize mt-1 leading-snug">
+          {data.format_skl !== "format_2" ? (
+            <div className="rounded-2xl border border-white/5 overflow-hidden" style={{ background: "rgba(0,0,0,0.2)" }}>
+              <div className="px-4 py-3 bg-white/5 border-b border-white/5 flex items-center justify-between">
+                <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">Daftar Nilai Asesmen</span>
+                <span className="text-xs font-mono font-bold text-emerald-400">
+                  Rata-Rata: {(() => {
+                    let sum = 0, count = 0;
+                    const n = siswa.nilai_kelulusan || {};
+                    const mapels = [
+                      { key: "pai" }, { key: "ppkn" }, { key: "indo" }, { key: "mtk" },
+                      { key: "ipas" }, { key: "sbdp" }, { key: "pjok" }, { key: "bing" },
+                      { key: "mulok1" }
+                    ];
+                    if (data.nama_mulok2) mapels.push({ key: "mulok2" });
+                    if (data.nama_mulok3) mapels.push({ key: "mulok3" });
+                    mapels.forEach(m => {
+                      const v = n[m.key];
+                      if (v && v.trim() !== "") {
+                        const num = parseFloat(v.replace(",", "."));
+                        if (!isNaN(num)) { sum += num; count++; }
+                      }
+                    });
+                    return count > 0 ? (sum / count).toFixed(2).replace(".", ",") : "0,00";
+                  })()}
+                </span>
+              </div>
+              <div className="max-h-[250px] overflow-y-auto divide-y divide-white/[0.03]">
+                {[
+                  { label: "Pendidikan Agama dan Budi Pekerti", key: "pai" },
+                  { label: "Pendidikan Pancasila", key: "ppkn" },
+                  { label: "Bahasa Indonesia", key: "indo" },
+                  { label: "Matematika", key: "mtk" },
+                  { label: "Ilmu Pengetahuan Alam dan Sosial (IPAS)", key: "ipas" },
+                  { label: "Seni Budaya dan Prakarya", key: "sbdp" },
+                  { label: "Pendidikan Jasmani, Olahraga & Kesehatan", key: "pjok" },
+                  { label: "Bahasa Inggris", key: "bing" },
+                  { label: `Muatan Lokal : ${data.nama_mulok1 || "Bahasa Sunda"}`, key: "mulok1" },
+                  ...(data.nama_mulok2 ? [{ label: `Muatan Lokal : ${data.nama_mulok2}`, key: "mulok2" }] : []),
+                  ...(data.nama_mulok3 ? [{ label: `Muatan Lokal : ${data.nama_mulok3}`, key: "mulok3" }] : []),
+                ].map(subj => {
+                  const val = siswa.nilai_kelulusan?.[subj.key];
+                  const formatted = val ? parseFloat(val.replace(",", ".")).toFixed(2).replace(".", ",") : "—";
+                  return (
+                    <div key={subj.key} className="flex justify-between items-center px-4 py-2 text-xs">
+                      <span className="text-white/60">{subj.label}</span>
+                      <span className="font-mono font-bold text-white/95">{formatted}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div className="p-4 rounded-2xl flex items-center justify-between border border-amber-500/20 bg-amber-500/5">
+              <div className="min-w-0 pr-3">
+                <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider">Nilai Rata-Rata Asesmen</h4>
+                <p className="text-[10px] text-white/40 capitalize mt-1 leading-snug">
+                  {(() => {
+                    let sum = 0, count = 0;
+                    const n = siswa.nilai_kelulusan || {};
+                    const mapels = [
+                      { key: "pai" }, { key: "ppkn" }, { key: "indo" }, { key: "mtk" },
+                      { key: "ipas" }, { key: "sbdp" }, { key: "pjok" }, { key: "bing" },
+                      { key: "mulok1" }
+                    ];
+                    if (data.nama_mulok2) mapels.push({ key: "mulok2" });
+                    if (data.nama_mulok3) mapels.push({ key: "mulok3" });
+                    mapels.forEach(m => {
+                      const v = n[m.key];
+                      if (v && v.trim() !== "") {
+                        const num = parseFloat(v.replace(",", "."));
+                        if (!isNaN(num)) { sum += num; count++; }
+                      }
+                    });
+                    const avgVal = count > 0 ? (sum / count).toFixed(2).replace(".", ",") : "0,00";
+                    return terbilangRataRata(avgVal);
+                  })()}
+                </p>
+              </div>
+              <div className="text-2xl font-black text-amber-400 shrink-0">
                 {(() => {
                   let sum = 0, count = 0;
                   const n = siswa.nilai_kelulusan || {};
@@ -522,33 +791,11 @@ export default function ESklPage() {
                       if (!isNaN(num)) { sum += num; count++; }
                     }
                   });
-                  const avgVal = count > 0 ? (sum / count).toFixed(2).replace(".", ",") : "0,00";
-                  return terbilangRataRata(avgVal);
+                  return count > 0 ? (sum / count).toFixed(2).replace(".", ",") : "0,00";
                 })()}
-              </p>
+              </div>
             </div>
-            <div className="text-2xl font-black text-amber-400 shrink-0">
-              {(() => {
-                let sum = 0, count = 0;
-                const n = siswa.nilai_kelulusan || {};
-                const mapels = [
-                  { key: "pai" }, { key: "ppkn" }, { key: "indo" }, { key: "mtk" },
-                  { key: "ipas" }, { key: "sbdp" }, { key: "pjok" }, { key: "bing" },
-                  { key: "mulok1" }
-                ];
-                if (data.nama_mulok2) mapels.push({ key: "mulok2" });
-                if (data.nama_mulok3) mapels.push({ key: "mulok3" });
-                mapels.forEach(m => {
-                  const v = n[m.key];
-                  if (v && v.trim() !== "") {
-                    const num = parseFloat(v.replace(",", "."));
-                    if (!isNaN(num)) { sum += num; count++; }
-                  }
-                });
-                return count > 0 ? (sum / count).toFixed(2).replace(".", ",") : "0,00";
-              })()}
-            </div>
-          </div>
+          )}
 
           {/* LULUS Status */}
           <div className="relative p-5 rounded-2xl text-center overflow-hidden print:!bg-white print:border-black print:!border-2" style={{ background: "linear-gradient(135deg, rgba(212,168,67,0.08), rgba(16,185,129,0.05))", border: "1px solid rgba(212,168,67,0.15)" }}>

@@ -86,6 +86,7 @@ export default function KelulusanPage() {
   const [namaMulok3, setNamaMulok3] = useState("");
   const [skLulusNomor, setSkLulusNomor] = useState("800/032-SD/2026");
   const [skLulusTentang, setSkLulusTentang] = useState("Kriteria Kelulusan Peserta Didik Tahun Pelajaran 2025/2026");
+  const [formatSkl, setFormatSkl] = useState("format_1");
 
   // Modal Input Nilai & Nomor SKL
   const [modalSiswa, setModalSiswa] = useState<SiswaKelulusan | null>(null);
@@ -112,7 +113,7 @@ export default function KelulusanPage() {
             .or("kelas.ilike.6%,kelas.ilike.VI%")
             .order("kelas")
             .order("nama"),
-          supabase.from("pengaturan").select("id, portal_kelulusan_aktif, tanggal_pengumuman, pesan_kelulusan, tanggal_kelulusan, nama_mulok1, nama_mulok2, nama_mulok3, sk_lulus_nomor, sk_lulus_tentang").single(),
+          supabase.from("pengaturan").select("id, portal_kelulusan_aktif, tanggal_pengumuman, pesan_kelulusan, tanggal_kelulusan, nama_mulok1, nama_mulok2, nama_mulok3, sk_lulus_nomor, sk_lulus_tentang, format_skl").single(),
         ]);
 
         if (siswaRes.error) {
@@ -136,6 +137,7 @@ export default function KelulusanPage() {
           setNamaMulok3(pengaturan.nama_mulok3 || "");
           setSkLulusNomor(pengaturan.sk_lulus_nomor || "800/032-SD/2026");
           setSkLulusTentang(pengaturan.sk_lulus_tentang || "Kriteria Kelulusan Peserta Didik Tahun Pelajaran 2025/2026");
+          setFormatSkl(pengaturan.format_skl || "format_1");
         }
       } catch (err: any) {
         toast.error("Terjadi kesalahan koneksi database.");
@@ -241,6 +243,7 @@ export default function KelulusanPage() {
       nama_mulok3: namaMulok3 || null,
       sk_lulus_nomor: skLulusNomor || null,
       sk_lulus_tentang: skLulusTentang || null,
+      format_skl: formatSkl || "format_1",
     };
 
     const { data: updated, error } = await supabase
@@ -250,7 +253,11 @@ export default function KelulusanPage() {
       .select("id, tanggal_pengumuman");
 
     if (error) {
-      toast.error("Gagal menyimpan: " + error.message);
+      if (error.message.includes("format_skl")) {
+        toast.error("Gagal menyimpan: Kolom database belum siap. Silakan jalankan file migrasi 015_format_skl.sql di dashboard Supabase Anda terlebih dahulu.");
+      } else {
+        toast.error("Gagal menyimpan: " + error.message);
+      }
       console.error("[Kelulusan Save Error]", error);
     } else if (!updated || updated.length === 0) {
       toast.error("Data tidak tersimpan — tidak ada baris yang terupdate. Coba refresh halaman dan ulangi.");
@@ -538,7 +545,7 @@ export default function KelulusanPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t border-white/5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4 border-t border-white/5">
             {/* Nomor SK Kelulusan */}
             <div className="p-4 rounded-xl" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
               <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3">Nomor SK Kelulusan</p>
@@ -557,6 +564,18 @@ export default function KelulusanPage() {
                 className="w-full h-11 px-3 rounded-xl text-sm text-white/80 outline-none"
                 style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.08)" }} />
               <p className="text-[10px] text-white/25 mt-2">Isi perihal SK yang tercetak di SKL</p>
+            </div>
+
+            {/* Format SKL */}
+            <div className="p-4 rounded-xl" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+              <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3">Format Cetak SKL</p>
+              <select value={formatSkl} onChange={e => setFormatSkl(e.target.value)}
+                className="w-full h-11 px-3 rounded-xl text-sm text-white/80 outline-none"
+                style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.08)", colorScheme: "dark" }}>
+                <option value="format_1" style={{ background: "#111" }}>Format 1 (Dengan Nilai)</option>
+                <option value="format_2" style={{ background: "#111" }}>Format 2 (Hanya Rata-Rata)</option>
+              </select>
+              <p className="text-[10px] text-white/25 mt-2">Format dokumen SKL yang dicetak</p>
             </div>
           </div>
         </div>
