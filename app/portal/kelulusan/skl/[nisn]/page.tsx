@@ -162,7 +162,7 @@ export default function ESklPage() {
       });
       if (count <= 0) return "-";
       const avg = sum / count;
-      return (Math.floor(avg * 100) / 100).toFixed(2).replace(".", ",");
+      return avg.toFixed(2).replace(".", ",");
     };
 
     const avgVal = getAvg();
@@ -386,7 +386,7 @@ export default function ESklPage() {
       });
       if (count <= 0) return "-";
       const avg = sum / count;
-      return (Math.floor(avg * 100) / 100).toFixed(2).replace(".", ",");
+      return avg.toFixed(2).replace(".", ",");
     };
 
     const avgVal = getAvg();
@@ -721,7 +721,7 @@ export default function ESklPage() {
                         if (!isNaN(num)) { sum += num; count++; }
                       }
                     });
-                    return count > 0 ? (Math.floor((sum / count) * 100) / 100).toFixed(2).replace(".", ",") : "0,00";
+                    return count > 0 ? (sum / count).toFixed(2).replace(".", ",") : "0,00";
                   })()}
                 </span>
               </div>
@@ -772,7 +772,7 @@ export default function ESklPage() {
                         if (!isNaN(num)) { sum += num; count++; }
                       }
                     });
-                    const avgVal = count > 0 ? (Math.floor((sum / count) * 100) / 100).toFixed(2).replace(".", ",") : "0,00";
+                    const avgVal = count > 0 ? (sum / count).toFixed(2).replace(".", ",") : "0,00";
                     return terbilangRataRata(avgVal);
                   })()}
                 </p>
@@ -795,7 +795,7 @@ export default function ESklPage() {
                       if (!isNaN(num)) { sum += num; count++; }
                     }
                   });
-                  return count > 0 ? (Math.floor((sum / count) * 100) / 100).toFixed(2).replace(".", ",") : "0,00";
+                  return count > 0 ? (sum / count).toFixed(2).replace(".", ",") : "0,00";
                 })()}
               </div>
             </div>

@@ -61,8 +61,7 @@ const getSiswaAverageNumber = (siswa: SiswaKelulusan) => {
 const getSiswaAverage = (siswa: SiswaKelulusan) => {
   const avg = getSiswaAverageNumber(siswa);
   if (avg <= 0) return "—";
-  const truncated = Math.floor(avg * 100) / 100;
-  return truncated.toFixed(2).replace(".", ",");
+  return avg.toFixed(2).replace(".", ",");
 };
 
 export default function KelulusanPage() {
@@ -314,10 +313,8 @@ export default function KelulusanPage() {
         }
       }
     });
-    if (count <= 0) return "0,00";
-    const avg = sum / count;
-    const truncated = Math.floor(avg * 100) / 100;
-    return truncated.toFixed(2).replace(".", ",");
+    const avg = count > 0 ? sum / count : 0;
+    return avg.toFixed(2).replace(".", ",");
   }, [modalNilai]);
 
   // Menyimpan nilai dari modal
