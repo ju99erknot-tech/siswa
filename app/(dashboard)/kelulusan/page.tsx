@@ -36,12 +36,17 @@ interface SiswaKelulusan {
   nilai_kelulusan?: Record<string, string> | null;
 }
 
+// Daftar key mapel yang valid untuk perhitungan rata-rata
+const MAPEL_KEYS = ["pai", "ppkn", "indo", "mtk", "ipas", "sbdp", "pjok", "bing", "mulok1", "mulok2", "mulok3"];
+
 // Menghitung rata-rata nilai siswa secara dinamis di tabel (angka)
 const getSiswaAverageNumber = (siswa: SiswaKelulusan) => {
   if (!siswa.nilai_kelulusan) return 0;
+  const n = siswa.nilai_kelulusan;
   let sum = 0;
   let count = 0;
-  Object.values(siswa.nilai_kelulusan).forEach(val => {
+  MAPEL_KEYS.forEach(key => {
+    const val = n[key];
     if (val && val.trim() !== "") {
       const num = parseFloat(val.replace(",", "."));
       if (!isNaN(num)) {
@@ -297,8 +302,9 @@ export default function KelulusanPage() {
   const averageNilai = useMemo(() => {
     let sum = 0;
     let count = 0;
-    Object.values(modalNilai).forEach(val => {
-      if (val.trim() !== "") {
+    MAPEL_KEYS.forEach(key => {
+      const val = modalNilai[key];
+      if (val && val.trim() !== "") {
         const num = parseFloat(val.replace(",", "."));
         if (!isNaN(num)) {
           sum += num;
