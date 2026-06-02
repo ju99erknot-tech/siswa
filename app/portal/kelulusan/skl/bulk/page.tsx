@@ -231,7 +231,7 @@ export default function BulkPrintPage() {
               }
             }
           });
-          return count > 0 ? (sum / count).toFixed(2).replace(".", ",") : "-";
+          return count > 0 ? (Math.floor((sum / count) * 100) / 100).toFixed(2).replace(".", ",") : "-";
         };
 
         const avgVal = getAvg();
