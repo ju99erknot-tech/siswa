@@ -120,6 +120,9 @@ export default function SpmbDashboard() {
       "Pilihan Sekolah 2": d.sekolah_tujuan_2 || "-",
       "Titik Lintang (Latitude)": d.lintang || "-",
       "Titik Bujur (Longitude)": d.bujur || "-",
+      "No. HP / WhatsApp": d.siswa?.no_wa || d.siswa?.telepon || "-",
+      "Nama Ayah": d.siswa?.nama_ayah || "-",
+      "Nama Ibu": d.siswa?.nama_ibu || "-",
       "Status Berkas": d.status,
       "Catatan Revisi": d.catatan_guru || "-",
     }));
@@ -141,8 +144,11 @@ export default function SpmbDashboard() {
       { wch: 25 },
       { wch: 20 },
       { wch: 20 },
-      { wch: 20 },
-      { wch: 30 },
+      { wch: 20 }, // No. HP
+      { wch: 20 }, // Nama Ayah
+      { wch: 20 }, // Nama Ibu
+      { wch: 20 }, // Status Berkas
+      { wch: 30 }, // Catatan Revisi
     ];
     worksheet["!cols"] = colWidths;
 
@@ -281,9 +287,16 @@ export default function SpmbDashboard() {
               {pag.paginated.map((d) => (
                 <ATRow key={d.id}>
                   <ATCell>
-                    <span className="font-bold text-white/80">
-                      {d.siswa?.nama || "-"}
-                    </span>
+                    <div className="flex flex-col">
+                      <span className="font-bold text-white/80">
+                        {d.siswa?.nama || "-"}
+                      </span>
+                      {(d.siswa?.no_wa || d.siswa?.telepon) && (
+                        <span className="text-[10px] text-white/40 mt-0.5 font-mono">
+                          📞 {d.siswa.no_wa || d.siswa.telepon}
+                        </span>
+                      )}
+                    </div>
                   </ATCell>
                   <ATCell>
                     <div className="flex flex-col gap-1">
@@ -434,6 +447,52 @@ export default function SpmbDashboard() {
                             Buka di Google Maps
                           </a>
                         )}
+                      </div>
+                    </div>
+
+                    <div className="p-4 rounded-xl border border-white/5 bg-white/[0.02]">
+                      <h4 className="text-xs font-bold text-white/50 uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <MessageSquare size={14} /> Kontak & Orang Tua
+                      </h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-white/40">Nama Ayah:</span>
+                          <span className="text-white/90 font-bold">
+                            {verifikasiData.siswa?.nama_ayah || "-"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-white/40">Nama Ibu:</span>
+                          <span className="text-white/90 font-bold">
+                            {verifikasiData.siswa?.nama_ibu || "-"}
+                          </span>
+                        </div>
+
+                        <div className="h-px bg-white/5 my-2"></div>
+
+                        <div className="flex justify-between text-sm items-center">
+                          <span className="text-white/40">No. HP / WhatsApp:</span>
+                          {verifikasiData.siswa?.no_wa ? (
+                            (() => {
+                              const clean = verifikasiData.siswa.no_wa.replace(/[^0-9]/g, "");
+                              const formatted = clean.startsWith("0") ? "62" + clean.slice(1) : clean.startsWith("62") ? clean : "62" + clean;
+                              return (
+                                <a
+                                  href={`https://wa.me/${formatted}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-emerald-400 hover:text-emerald-300 font-bold hover:underline flex items-center gap-1 text-xs"
+                                >
+                                  📞 {verifikasiData.siswa.no_wa} ↗
+                                </a>
+                              );
+                            })()
+                          ) : (
+                            <span className="text-white/90 font-bold text-xs">
+                              {verifikasiData.siswa?.telepon || "-"}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
 

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -29,7 +29,8 @@ export function useSpmb() {
           siswa:siswa_id (
             id, nama, nisn, jk, kelas,
             url_kk, url_akta,
-            nama_ayah, nama_ibu
+            nama_ayah, nama_ibu,
+            no_wa, telepon
           )
         `,
         )
