@@ -115,7 +115,7 @@ export default function PortalSpmb() {
   const [fileKtpIbu, setFileKtpIbu] = useState<File | null>(null);
   const [fileKk, setFileKk] = useState<File | null>(null);
   const [fileAkta, setFileAkta] = useState<File | null>(null);
-  const [filePendukung, setFilePendukung] = useState<File | null>(null);
+  const [filesPendukung, setFilesPendukung] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
   const [mapMountId, setMapMountId] = useState(0);
@@ -220,7 +220,7 @@ export default function PortalSpmb() {
     if (activeDocType === "ktpIbu") setFileKtpIbu(previewFile);
     if (activeDocType === "kk") setFileKk(previewFile);
     if (activeDocType === "akta") setFileAkta(previewFile);
-    if (activeDocType === "pendukung") setFilePendukung(previewFile);
+    if (activeDocType === "pendukung") setFilesPendukung(prev => [...prev, previewFile]);
     closeUploadModal();
   };
 
@@ -321,7 +321,7 @@ export default function PortalSpmb() {
     const hasAkta = dataSiswa?.url_akta || fileAkta;
     const hasKtpAyah = dataSpmb?.url_ktp_ayah || fileKtpAyah;
     const hasKtpIbu = dataSpmb?.url_ktp_ibu || fileKtpIbu;
-    const hasPendukung = dataSpmb?.url_dokumen_pendukung || filePendukung;
+    const hasPendukung = dataSpmb?.url_dokumen_pendukung || filesPendukung.length > 0;
 
     if (!hasKk || !hasAkta) {
       toast.error("Mohon lengkapi foto KK dan Akta");
@@ -374,13 +374,30 @@ export default function PortalSpmb() {
           uploadFileToGDrive(fileAkta, `SPMB_AKTA_${nisn}`, folderName).then(url => { url_akta = url })
         );
       }
-      if (filePendukung) {
-        uploadPromises.push(
-          uploadFileToGDrive(filePendukung, `SPMB_PENDUKUNG_${jalur}_${nisn}`, folderName).then(url => { url_dokumen_pendukung = url })
-        );
+      const newPendukungUrls: string[] = [];
+      if (filesPendukung.length > 0) {
+        filesPendukung.forEach((file, i) => {
+          uploadPromises.push(
+            uploadFileToGDrive(file, `SPMB_PENDUKUNG_${jalur}_${nisn}_${i + 1}`, folderName).then(url => { newPendukungUrls.push(url) })
+          );
+        });
       }
 
       await Promise.all(uploadPromises);
+
+      // Combine existing + new pendukung URLs as JSON array
+      if (newPendukungUrls.length > 0) {
+        let existingUrls: string[] = [];
+        if (url_dokumen_pendukung) {
+          try {
+            const parsed = JSON.parse(url_dokumen_pendukung);
+            existingUrls = Array.isArray(parsed) ? parsed : [url_dokumen_pendukung];
+          } catch {
+            existingUrls = [url_dokumen_pendukung];
+          }
+        }
+        url_dokumen_pendukung = JSON.stringify([...existingUrls, ...newPendukungUrls]);
+      }
 
       // 2. Submit to API
       const res = await fetch("/api/spmb/submit", {
@@ -419,7 +436,7 @@ export default function PortalSpmb() {
       setFileKtpIbu(null);
       setFileKk(null);
       setFileAkta(null);
-      setFilePendukung(null);
+      setFilesPendukung([]);
 
       toast.success("Berhasil! Data Anda sedang diverifikasi oleh Guru.", { id: toastId });
     } catch (err: any) {
@@ -1146,7 +1163,7 @@ export default function PortalSpmb() {
                     )}
                   </div>
 
-                  {/* Item: Dokumen Pendukung (Dinamis) */}
+                  {/* Item: Dokumen Pendukung (Dinamis - Multi Upload) */}
                   <AnimatePresence>
                     {jalur && (
                       <motion.div 
@@ -1155,33 +1172,81 @@ export default function PortalSpmb() {
                         exit={{ opacity: 0, height: 0, scale: 0.9 }}
                         className="p-4 rounded-2xl border-2 border-dashed border-rose-500/50 bg-rose-500/5 flex flex-col items-center justify-center text-center transition-all overflow-hidden relative min-h-[140px] md:col-span-2 mt-4"
                       >
-                        {dataSpmb?.url_dokumen_pendukung && !filePendukung ? (
-                          <div className="flex flex-col items-center relative z-10">
-                            <div className="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-2"><Check size={20} /></div>
-                            <span className="text-xs font-bold text-emerald-400">Dokumen Syarat {jalur} Tersimpan</span>
-                            {!isLocked && <button onClick={() => openUploadModal("pendukung")} className="text-[10px] text-white/40 hover:text-white mt-2 underline">Ganti Dokumen Baru</button>}
-                          </div>
-                        ) : filePendukung ? (
-                          <FilePreviewThumbnail file={filePendukung} title={`Syarat ${jalur}`} onRemove={() => setFilePendukung(null)} isLocked={isLocked} />
-                        ) : (
-                          <div className="flex flex-col items-center relative z-10">
-                            <AlertCircle className="w-8 h-8 mb-2 text-rose-400/80 animate-pulse" />
-                            <span className="text-xs font-bold text-white/90">
-                              Upload Syarat Jalur {jalur}
-                            </span>
-                            <p className="text-[10px] text-rose-400 mt-1 px-4 max-w-sm">
-                              {jalur === 'Zonasi' && "Wajib upload foto tampak depan rumah tempat tinggal saat ini (foto geotagging)."}
-                              {jalur === 'Prestasi' && "Wajib upload foto/PDF Piagam Sertifikat Lomba."}
-                              {jalur === 'Afirmasi' && "Wajib upload foto Kartu KIP / KPS / PKH asli yang masih berlaku."}
-                              {jalur === 'Mutasi' && "Wajib upload foto Surat Keterangan Pindah Tugas Orang Tua."}
-                            </p>
-                            {!isLocked && (
-                              <button onClick={() => openUploadModal("pendukung")} className="mt-4 px-6 py-2 rounded-xl text-[10px] font-bold bg-rose-500 text-white hover:bg-rose-600 shadow-[0_0_15px_rgba(244,63,94,0.4)] transition-all">
-                                + Pilih File Syarat Mutlak
-                              </button>
-                            )}
-                          </div>
-                        )}
+                        {(() => {
+                          // Parse existing uploaded URLs (backward compatible: single string or JSON array)
+                          const existingUrls: string[] = (() => {
+                            const raw = dataSpmb?.url_dokumen_pendukung;
+                            if (!raw) return [];
+                            try {
+                              const parsed = JSON.parse(raw);
+                              return Array.isArray(parsed) ? parsed : [raw];
+                            } catch { return [raw]; }
+                          })();
+                          const totalFiles = existingUrls.length + filesPendukung.length;
+                          const hasAny = totalFiles > 0;
+
+                          if (hasAny) {
+                            return (
+                              <div className="flex flex-col items-center relative z-10 w-full">
+                                {/* Thumbnail grid */}
+                                <div className="flex flex-wrap justify-center gap-2 w-full mb-3">
+                                  {existingUrls.map((_, i) => (
+                                    <div key={`saved-${i}`} className="w-16 h-16 rounded-xl border border-emerald-500/30 bg-emerald-500/10 flex items-center justify-center">
+                                      <Check size={18} className="text-emerald-400" />
+                                    </div>
+                                  ))}
+                                  {filesPendukung.map((file, i) => (
+                                    <div key={`new-${i}`} className="w-16 h-16 rounded-xl border border-cyan-500/30 bg-cyan-500/10 flex items-center justify-center relative group">
+                                      {file.type.startsWith('image/') ? (
+                                        <img src={URL.createObjectURL(file)} className="w-full h-full object-cover rounded-xl" alt={`Foto ${i+1}`} />
+                                      ) : (
+                                        <FileText size={18} className="text-cyan-400" />
+                                      )}
+                                      {!isLocked && (
+                                        <button
+                                          onClick={() => setFilesPendukung(prev => prev.filter((_, idx) => idx !== i))}
+                                          className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                                        >
+                                          ×
+                                        </button>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                                <span className="text-xs font-bold text-emerald-400 mb-1">
+                                  {totalFiles} foto syarat {jalur}
+                                </span>
+                                <p className="text-[10px] text-white/40 mb-2">Bisa upload lebih dari 1 foto</p>
+                                {!isLocked && (
+                                  <button onClick={() => openUploadModal("pendukung")} className="px-4 py-1.5 rounded-lg text-[10px] font-bold bg-white/5 text-white/70 hover:bg-white/10 border border-white/5 transition-all">
+                                    + Tambah Foto Lagi
+                                  </button>
+                                )}
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <div className="flex flex-col items-center relative z-10">
+                              <AlertCircle className="w-8 h-8 mb-2 text-rose-400/80 animate-pulse" />
+                              <span className="text-xs font-bold text-white/90">
+                                Upload Syarat Jalur {jalur}
+                              </span>
+                              <p className="text-[10px] text-rose-400 mt-1 px-4 max-w-sm">
+                                {jalur === 'Zonasi' && "Wajib upload foto tampak depan rumah tempat tinggal saat ini (foto geotagging)."}
+                                {jalur === 'Prestasi' && "Wajib upload foto/PDF Piagam Sertifikat Lomba."}
+                                {jalur === 'Afirmasi' && "Wajib upload foto Kartu KIP / KPS / PKH asli yang masih berlaku."}
+                                {jalur === 'Mutasi' && "Wajib upload foto Surat Keterangan Pindah Tugas Orang Tua."}
+                              </p>
+                              <p className="text-[10px] text-white/30 mt-1">Bisa upload lebih dari 1 foto</p>
+                              {!isLocked && (
+                                <button onClick={() => openUploadModal("pendukung")} className="mt-4 px-6 py-2 rounded-xl text-[10px] font-bold bg-rose-500 text-white hover:bg-rose-600 shadow-[0_0_15px_rgba(244,63,94,0.4)] transition-all">
+                                  + Pilih File Syarat Mutlak
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </motion.div>
                     )}
                   </AnimatePresence>

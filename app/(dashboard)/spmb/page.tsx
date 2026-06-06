@@ -16,6 +16,8 @@ import {
   RefreshCw,
   MessageSquare,
   ExternalLink,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useSpmb } from "@/hooks/useSpmb";
@@ -47,7 +49,17 @@ export default function SpmbDashboard() {
   const [verifikasiData, setVerifikasiData] = useState<SpmbSmp | null>(null);
   const [catatan, setCatatan] = useState("");
   const [saving, setSaving] = useState(false);
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [previewImages, setPreviewImages] = useState<string[]>([]);
+  const [previewIdx, setPreviewIdx] = useState(0);
+
+  // Helper: parse url_dokumen_pendukung (backward compatible)
+  const parsePendukungUrls = (val: string | null | undefined): string[] => {
+    if (!val) return [];
+    try {
+      const parsed = JSON.parse(val);
+      return Array.isArray(parsed) ? parsed : [val];
+    } catch { return [val]; }
+  };
 
   const uniqueKelas = Array.from(
     new Set(dataSpmb.map((d) => d.siswa?.kelas).filter(Boolean)),
@@ -524,7 +536,7 @@ export default function SpmbDashboard() {
                       <div
                         onClick={() =>
                           verifikasiData.url_kk &&
-                          setPreviewImage(verifikasiData.url_kk)
+                          (() => { setPreviewImages([verifikasiData.url_kk]); setPreviewIdx(0); })()
                         }
                         className={`aspect-[4/3] rounded-xl border flex flex-col items-center justify-center p-2 text-center transition-all ${verifikasiData.url_kk ? "border-white/20 bg-white/5 hover:border-emerald-500/50 cursor-pointer" : "border-dashed border-white/10 bg-black/20"}`}
                       >
@@ -549,7 +561,7 @@ export default function SpmbDashboard() {
                       <div
                         onClick={() =>
                           verifikasiData.url_akta &&
-                          setPreviewImage(verifikasiData.url_akta)
+                          (() => { setPreviewImages([verifikasiData.url_akta]); setPreviewIdx(0); })()
                         }
                         className={`aspect-[4/3] rounded-xl border flex flex-col items-center justify-center p-2 text-center transition-all ${verifikasiData.url_akta ? "border-white/20 bg-white/5 hover:border-emerald-500/50 cursor-pointer" : "border-dashed border-white/10 bg-black/20"}`}
                       >
@@ -574,7 +586,7 @@ export default function SpmbDashboard() {
                       <div
                         onClick={() =>
                           verifikasiData.url_ktp_ayah &&
-                          setPreviewImage(verifikasiData.url_ktp_ayah)
+                          (() => { setPreviewImages([verifikasiData.url_ktp_ayah]); setPreviewIdx(0); })()
                         }
                         className={`aspect-[4/3] rounded-xl border flex flex-col items-center justify-center p-2 text-center transition-all ${verifikasiData.url_ktp_ayah ? "border-white/20 bg-white/5 hover:border-emerald-500/50 cursor-pointer" : "border-dashed border-white/10 bg-black/20"}`}
                       >
@@ -599,7 +611,7 @@ export default function SpmbDashboard() {
                       <div
                         onClick={() =>
                           verifikasiData.url_ktp_ibu &&
-                          setPreviewImage(verifikasiData.url_ktp_ibu)
+                          (() => { setPreviewImages([verifikasiData.url_ktp_ibu]); setPreviewIdx(0); })()
                         }
                         className={`aspect-[4/3] rounded-xl border flex flex-col items-center justify-center p-2 text-center transition-all ${verifikasiData.url_ktp_ibu ? "border-white/20 bg-white/5 hover:border-emerald-500/50 cursor-pointer" : "border-dashed border-white/10 bg-black/20"}`}
                       >
@@ -620,26 +632,29 @@ export default function SpmbDashboard() {
                         )}
                       </div>
 
-                      {/* Dokumen Pendukung (Semua Jalur) */}
-                      {verifikasiData.jalur_pendaftaran && (
+                      {/* Dokumen Pendukung (Semua Jalur - Multi Foto) */}
+                      {verifikasiData.jalur_pendaftaran && (() => {
+                        const pendukungUrls = parsePendukungUrls(verifikasiData.url_dokumen_pendukung);
+                        const hasFiles = pendukungUrls.length > 0;
+                        return (
                           <div
-                            onClick={() =>
-                              verifikasiData.url_dokumen_pendukung &&
-                              setPreviewImage(
-                                verifikasiData.url_dokumen_pendukung,
-                              )
-                            }
-                            className={`col-span-2 rounded-xl border flex flex-col items-center justify-center p-3 text-center transition-all ${verifikasiData.url_dokumen_pendukung ? "border-yellow-500/30 bg-yellow-500/5 hover:border-yellow-400/50 cursor-pointer" : "border-dashed border-white/10 bg-black/20"}`}
+                            onClick={() => {
+                              if (hasFiles) {
+                                setPreviewImages(pendukungUrls);
+                                setPreviewIdx(0);
+                              }
+                            }}
+                            className={`col-span-2 rounded-xl border flex flex-col items-center justify-center p-3 text-center transition-all ${hasFiles ? "border-yellow-500/30 bg-yellow-500/5 hover:border-yellow-400/50 cursor-pointer" : "border-dashed border-white/10 bg-black/20"}`}
                           >
                             <FileText
-                              className={`w-8 h-8 mb-2 ${verifikasiData.url_dokumen_pendukung ? "text-yellow-400" : "text-white/10"}`}
+                              className={`w-8 h-8 mb-2 ${hasFiles ? "text-yellow-400" : "text-white/10"}`}
                             />
                             <span className="text-xs font-bold text-white/80">
                               {verifikasiData.jalur_pendaftaran === "Zonasi" ? "Foto Depan Rumah" : `Dokumen ${verifikasiData.jalur_pendaftaran}`}
                             </span>
-                            {verifikasiData.url_dokumen_pendukung ? (
+                            {hasFiles ? (
                               <span className="text-[10px] text-yellow-400/80 mt-1">
-                                {verifikasiData.jalur_pendaftaran === "Zonasi" ? "Foto Geotagging" : "Sertifikat/KIP/Surat Pindah"} - Klik untuk lihat
+                                {pendukungUrls.length} foto - Klik untuk lihat
                               </span>
                             ) : (
                               <span className="text-[10px] text-red-400/80 mt-1">
@@ -647,7 +662,8 @@ export default function SpmbDashboard() {
                               </span>
                             )}
                           </div>
-                        )}
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>
@@ -707,32 +723,58 @@ export default function SpmbDashboard() {
         )}
       </AnimatePresence>
 
-      {/* Document Preview Modal (Fullscreen) */}
+      {/* Document Preview Modal (Fullscreen with Gallery Navigation) */}
       <AnimatePresence>
-        {previewImage && (
+        {previewImages.length > 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md"
-            onClick={() => setPreviewImage(null)}
+            onClick={() => { setPreviewImages([]); setPreviewIdx(0); }}
           >
             <button className="absolute top-6 right-6 z-[210] p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition-all">
               <XCircle size={32} />
             </button>
+
+            {/* Gallery counter */}
+            {previewImages.length > 1 && (
+              <div className="absolute top-6 left-1/2 -translate-x-1/2 z-[210] px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/10">
+                <span className="text-sm font-bold text-white">{previewIdx + 1} / {previewImages.length}</span>
+              </div>
+            )}
+
+            {/* Prev button */}
+            {previewImages.length > 1 && (
+              <button
+                onClick={(e) => { e.stopPropagation(); setPreviewIdx(prev => prev <= 0 ? previewImages.length - 1 : prev - 1); }}
+                className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-[210] w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all backdrop-blur-md border border-white/10"
+              >
+                <ChevronLeft size={24} />
+              </button>
+            )}
+
+            {/* Next button */}
+            {previewImages.length > 1 && (
+              <button
+                onClick={(e) => { e.stopPropagation(); setPreviewIdx(prev => prev >= previewImages.length - 1 ? 0 : prev + 1); }}
+                className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-[210] w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all backdrop-blur-md border border-white/10"
+              >
+                <ChevronRight size={24} />
+              </button>
+            )}
+
             <div
               className="w-full h-full max-w-5xl max-h-[90vh] flex items-center justify-center relative rounded-xl overflow-hidden shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
               {(() => {
-                const url = previewImage;
+                const url = previewImages[previewIdx] || "";
                 let finalUrl = url;
                 let isGoogleDrive = false;
                 let isPdf = false;
 
-                // Handle old Supabase relative paths vs full HTTP URLs
                 if (!url.startsWith("http")) {
-                  // Fallback for old code that uploaded to Supabase Storage (assuming bucket 'dokumen' or 'documents')
                   const bucket = url.includes("/") ? "" : "documents/";
                   finalUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${bucket}${url}`;
                 }
