@@ -56,6 +56,8 @@ export async function GET(req: Request) {
       sk_lulus_nomor: pengaturan?.sk_lulus_nomor || null,
       sk_lulus_tentang: pengaturan?.sk_lulus_tentang || null,
       format_skl: pengaturan?.format_skl || "format_1",
+      ttd_url: pengaturan?.ttd_url || null,
+      stempel_url: pengaturan?.stempel_url || null,
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || "Server error" }, { status: 500 });

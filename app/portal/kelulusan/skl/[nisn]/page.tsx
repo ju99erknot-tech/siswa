@@ -31,6 +31,8 @@ interface SklData {
   sk_lulus_nomor?: string;
   sk_lulus_tentang?: string;
   format_skl?: string;
+  ttd_url?: string;
+  stempel_url?: string;
 }
 
 function terbilangAngka(n: number): string {
@@ -71,12 +73,20 @@ export default function ESklPage() {
   const [error, setError] = useState<string | null>(null);
   const certRef = useRef<HTMLDivElement>(null);
   const [isPrintMode, setIsPrintMode] = useState(false);
+  const [showTtd, setShowTtd] = useState(true);
+  const [showStempel, setShowStempel] = useState(true);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       if (params.get("print") === "true") {
         setIsPrintMode(true);
+      }
+      if (params.get("ttd") === "false") {
+        setShowTtd(false);
+      }
+      if (params.get("stempel") === "false") {
+        setShowStempel(false);
       }
     }
   }, []);
@@ -309,10 +319,14 @@ export default function ESklPage() {
           
           <div class="footer-box">
             <div class="qr-box">${qrSvg}<p>Scan untuk verifikasi</p></div>
-            <div class="ttd-box">
+            <div class="ttd-box" style="position: relative;">
               <p>${schoolKota}, ${formattedTglKelulusan}</p>
-              <p style="margin-bottom: 75px;">Kepala,</p>
-              <div class="ttd-name">${data.nama_kepsek || "___________________"}</div>
+              <p>Kepala,</p>
+              <div style="height: 70px; position: relative; display: flex; align-items: center; justify-content: center; margin-bottom: -5px; margin-top: 5px;">
+                ${showTtd && data.ttd_url ? `<img src="${data.ttd_url}" style="position: absolute; max-height: 70px; object-fit: contain; z-index: 1; mix-blend-mode: multiply;" />` : ""}
+                ${showStempel && data.stempel_url ? `<img src="${data.stempel_url}" style="position: absolute; max-height: 80px; object-fit: contain; z-index: 2; left: -25px; opacity: 0.9; mix-blend-mode: multiply;" />` : ""}
+              </div>
+              <div class="ttd-name" style="margin-top: ${(showTtd || showStempel) ? '10px' : (isFormat1 ? '60px' : '75px')}">${data.nama_kepsek || "___________________"}</div>
               <div>NIP. ${data.nip_kepsek || "___________________"}</div>
             </div>
           </div>
@@ -591,10 +605,14 @@ export default function ESklPage() {
               <QRCode value={verifyUrl} size={70} level="M" />
               <p>Scan untuk verifikasi</p>
             </div>
-            <div className="ttd-box">
+            <div className="ttd-box" style={{ position: "relative" }}>
               <p>{schoolKota}, {formattedTglKelulusan}</p>
-              <p style={{ marginBottom: "75px" }}>Kepala,</p>
-              <div className="ttd-name">{data.nama_kepsek || "___________________"}</div>
+              <p>Kepala,</p>
+              <div style={{ height: "70px", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "-5px", marginTop: "5px" }}>
+                {showTtd && data.ttd_url && <img src={data.ttd_url} style={{ position: "absolute", maxHeight: "70px", objectFit: "contain", zIndex: 1, mixBlendMode: "multiply" }} alt="TTD" />}
+                {showStempel && data.stempel_url && <img src={data.stempel_url} style={{ position: "absolute", maxHeight: "80px", objectFit: "contain", zIndex: 2, left: "-25px", opacity: 0.9, mixBlendMode: "multiply" }} alt="Stempel" />}
+              </div>
+              <div className="ttd-name" style={{ marginTop: (showTtd || showStempel) ? "10px" : (isFormat1 ? "60px" : "75px") }}>{data.nama_kepsek || "___________________"}</div>
               <div>NIP. {data.nip_kepsek || "___________________"}</div>
             </div>
           </div>
@@ -843,6 +861,41 @@ export default function ESklPage() {
 
         {/* Gold accent bottom */}
         <div className="h-1 w-full" style={{ background: "linear-gradient(90deg, transparent, #D4A843, #F5D98C, #D4A843, transparent)" }} />
+      </motion.div>
+
+      {/* Opsi Cetak TTD & Stempel */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="w-full max-w-lg mt-6 p-4 rounded-3xl space-y-3 border border-white/5"
+        style={{ background: "rgba(255, 255, 255, 0.02)" }}
+      >
+        <h4 className="text-[10px] font-black text-amber-400 uppercase tracking-[0.2em] mb-1">Pengaturan Cetak Dokumen</h4>
+        <div className="grid grid-cols-2 gap-3">
+          <label className="flex items-center gap-3 p-3 bg-white/[0.02] border border-white/5 rounded-2xl cursor-pointer hover:bg-white/5 transition-all group">
+            <div className="relative flex items-center justify-center shrink-0">
+              <input type="checkbox" checked={showTtd} onChange={(e) => setShowTtd(e.target.checked)} className="peer sr-only" />
+              <div className="w-9 h-5 bg-white/10 rounded-full peer-checked:bg-amber-500 transition-colors border border-white/5" />
+              <div className="absolute left-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4 shadow-sm" />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="text-[11px] font-bold text-white/90 group-hover:text-amber-400 transition-colors truncate">Tanda Tangan</span>
+              <span className="text-[9px] text-white/40 truncate">Tampilkan TTD</span>
+            </div>
+          </label>
+          <label className="flex items-center gap-3 p-3 bg-white/[0.02] border border-white/5 rounded-2xl cursor-pointer hover:bg-white/5 transition-all group">
+            <div className="relative flex items-center justify-center shrink-0">
+              <input type="checkbox" checked={showStempel} onChange={(e) => setShowStempel(e.target.checked)} className="peer sr-only" />
+              <div className="w-9 h-5 bg-white/10 rounded-full peer-checked:bg-amber-500 transition-colors border border-white/5" />
+              <div className="absolute left-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4 shadow-sm" />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="text-[11px] font-bold text-white/90 group-hover:text-amber-400 transition-colors truncate">Stempel Resmi</span>
+              <span className="text-[9px] text-white/40 truncate">Tampilkan Stempel</span>
+            </div>
+          </label>
+        </div>
       </motion.div>
 
       {/* Action Buttons */}

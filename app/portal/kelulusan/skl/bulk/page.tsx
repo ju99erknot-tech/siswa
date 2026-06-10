@@ -70,12 +70,16 @@ interface BulkData {
   sk_lulus_nomor?: string;
   sk_lulus_tentang?: string;
   format_skl?: string;
+  ttd_url?: string;
+  stempel_url?: string;
 }
 
 export default function BulkPrintPage() {
   const [data, setData] = useState<BulkData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showTtd, setShowTtd] = useState(true);
+  const [showStempel, setShowStempel] = useState(true);
 
   useEffect(() => {
     fetch("/api/kelulusan/skl/bulk")
@@ -90,10 +94,13 @@ export default function BulkPrintPage() {
 
   useEffect(() => {
     if (data && data.siswaList.length > 0) {
-      const timer = setTimeout(() => {
-        window.print();
-      }, 1000);
-      return () => clearTimeout(timer);
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("print") === "true") {
+        const timer = setTimeout(() => {
+          window.print();
+        }, 1000);
+        return () => clearTimeout(timer);
+      }
     }
   }, [data]);
 
@@ -207,9 +214,38 @@ export default function BulkPrintPage() {
           .no-print { display: none !important; } 
         }
       ` }} />
-      <div className="no-print">
-        <button className="btn" onClick={() => window.print()}>🖨️ Cetak Semua ({data.siswaList.length} Siswa)</button>
-        <button className="btn" style={{ background: "#64748b" }} onClick={() => window.close()}>Tutup</button>
+      <div className="no-print" style={{ display: "flex", gap: "16px", alignItems: "center", background: "rgba(15, 23, 42, 0.9)", padding: "16px 24px", borderRadius: "20px", marginBottom: "25px", border: "1px solid rgba(255, 255, 255, 0.08)", backdropFilter: "blur(12px)" }}>
+        <button className="btn" onClick={() => window.print()} style={{ background: "linear-gradient(135deg, #D4A843, #b8860b)" }}>
+          🖨️ Cetak Semua ({data.siswaList.length} Siswa)
+        </button>
+        
+        <div style={{ display: "flex", gap: "20px", marginLeft: "20px" }}>
+          {/* Toggle TTD */}
+          <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", color: "rgba(255, 255, 255, 0.8)", fontSize: "12px", fontWeight: "bold", userSelect: "none" }}>
+            <input 
+              type="checkbox" 
+              checked={showTtd} 
+              onChange={(e) => setShowTtd(e.target.checked)} 
+              style={{ cursor: "pointer", width: "16px", height: "16px", accentColor: "#D4A843" }} 
+            />
+            Tampilkan Tanda Tangan
+          </label>
+
+          {/* Toggle Stempel */}
+          <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", color: "rgba(255, 255, 255, 0.8)", fontSize: "12px", fontWeight: "bold", userSelect: "none" }}>
+            <input 
+              type="checkbox" 
+              checked={showStempel} 
+              onChange={(e) => setShowStempel(e.target.checked)} 
+              style={{ cursor: "pointer", width: "16px", height: "16px", accentColor: "#D4A843" }} 
+            />
+            Tampilkan Stempel
+          </label>
+        </div>
+
+        <button className="btn" style={{ background: "rgba(255, 255, 255, 0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)", marginLeft: "auto" }} onClick={() => window.close()}>
+          Tutup
+        </button>
       </div>
 
       {data.siswaList.map((siswa) => {
@@ -365,10 +401,14 @@ export default function BulkPrintPage() {
                 <QRCode value={verifyUrl} size={70} level="M" />
                 <p>Scan untuk verifikasi</p>
               </div>
-              <div className="ttd-box">
+              <div className="ttd-box" style={{ position: "relative" }}>
                 <p>{schoolKota}, {formattedTglKelulusan}</p>
-                <p style={{ marginBottom: "75px" }}>Kepala,</p>
-                <div className="ttd-name">{data.nama_kepsek || "___________________"}</div>
+                <p>Kepala,</p>
+                <div style={{ height: "70px", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "-5px", marginTop: "5px" }}>
+                  {showTtd && data.ttd_url && <img src={data.ttd_url} style={{ position: "absolute", maxHeight: "70px", objectFit: "contain", zIndex: 1, mixBlendMode: "multiply" }} alt="TTD" />}
+                  {showStempel && data.stempel_url && <img src={data.stempel_url} style={{ position: "absolute", maxHeight: "80px", objectFit: "contain", zIndex: 2, left: "-25px", opacity: 0.9, mixBlendMode: "multiply" }} alt="Stempel" />}
+                </div>
+                <div className="ttd-name" style={{ marginTop: (showTtd || showStempel) ? "10px" : (isFormat1 ? "60px" : "75px") }}>{data.nama_kepsek || "___________________"}</div>
                 <div>NIP. {data.nip_kepsek || "___________________"}</div>
               </div>
             </div>
