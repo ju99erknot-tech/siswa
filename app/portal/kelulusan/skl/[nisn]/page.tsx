@@ -72,9 +72,11 @@ export default function ESklPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const certRef = useRef<HTMLDivElement>(null);
+  const printAreaRef = useRef<HTMLDivElement>(null);
   const [isPrintMode, setIsPrintMode] = useState(false);
   const [showTtd, setShowTtd] = useState(true);
   const [showStempel, setShowStempel] = useState(true);
+  const [downloadingJpg, setDownloadingJpg] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -118,214 +120,43 @@ export default function ESklPage() {
     }
   };
 
-  const handlePrintSKL = () => {
-    if (!data) return;
-    const { siswa } = data;
-    const tglLahirFormatted = siswa.tanggal_lahir
-      ? new Date(siswa.tanggal_lahir).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })
-      : "-";
-    const qrSvg = renderToString(<QRCode value={verifyUrl} size={70} level="M" />);
-
-    const getIndonesianDate = (dateStr: string | null | undefined) => {
-      if (!dateStr) return "-";
-      try {
-        const d = new Date(dateStr);
-        if (isNaN(d.getTime())) return dateStr;
-        return d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
-      } catch {
-        return dateStr;
-      }
-    };
-
-    const formattedTglKelulusan = getIndonesianDate(data.tanggal_kelulusan || "2026-06-02");
-
-    const n = siswa.nilai_kelulusan || {};
-
-    const mapels = [
-      { key: "pai" }, { key: "ppkn" }, { key: "indo" }, { key: "mtk" },
-      { key: "ipas" }, { key: "sbdp" }, { key: "pjok" }, { key: "bing" },
-      { key: "mulok1" }
-    ];
-    if (data.nama_mulok2) mapels.push({ key: "mulok2" });
-    if (data.nama_mulok3) mapels.push({ key: "mulok3" });
-
-    const getAvg = () => {
-      let sum = 0;
-      let count = 0;
-      mapels.forEach(m => {
-        const v = n[m.key];
-        if (v && v.trim() !== "") {
-          const num = parseFloat(v.replace(",", "."));
-          if (!isNaN(num)) {
-            sum += num;
-            count++;
-          }
+  const handleDownloadJpg = async (isCard = false) => {
+    const element = isCard ? certRef.current : printAreaRef.current;
+    if (!element) return;
+    setDownloadingJpg(true);
+    try {
+      const { toJpeg } = await import("html-to-image");
+      
+      const images = element.getElementsByTagName("img");
+      for (let i = 0; i < images.length; i++) {
+        const img = images[i];
+        if (img.src && !img.src.startsWith("data:")) {
+          img.crossOrigin = "anonymous";
         }
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 150));
+
+      const dataUrl = await toJpeg(element, {
+        quality: 0.98,
+        backgroundColor: isCard ? "#050812" : "#ffffff",
+        pixelRatio: 2.5,
       });
-      if (count <= 0) return "-";
-      const avg = sum / count;
-      return avg.toFixed(2).replace(".", ",");
-    };
 
-    const avgVal = getAvg();
-    const avgTerbilang = terbilangRataRata(avgVal);
+      const link = document.createElement("a");
+      link.download = `SKL_${isCard ? "KARTU_" : ""}${data?.siswa.nama.replace(/\s+/g, "_") || "Siswa"}.jpg`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error("Failed to download JPG", err);
+      alert("Gagal mengunduh JPG. Beberapa gambar eksternal mungkin membatasi unduhan langsung. Anda dapat mencoba menggunakan fitur print browser (Ctrl+P / Simpan sebagai PDF).");
+    } finally {
+      setDownloadingJpg(false);
+    }
+  };
 
-    const schoolKota = (() => {
-      if (!data.alamat_sekolah) return SCHOOL.kota;
-      const parts = data.alamat_sekolah.split(",");
-      const found = parts.find(p => p.toLowerCase().includes("kab.") || p.toLowerCase().includes("kota") || p.toLowerCase().includes("kec."));
-      return found?.trim() || SCHOOL.kota;
-    })();
-
-    const isFormat1 = data.format_skl !== "format_2";
-
-    const formatNilaiVal = (key: string) => {
-      const v = n[key];
-      if (v === undefined || v === null || v.trim() === "") return "-";
-      return parseFloat(v.replace(",", ".")).toFixed(2).replace(".", ",");
-    };
-
-    const mapelList = [
-      { no: "1.", nama: "Pendidikan Agama dan Budi Pekerti", key: "pai" },
-      { no: "2.", nama: "Pendidikan Pancasila", key: "ppkn" },
-      { no: "3.", nama: "Bahasa Indonesia", key: "indo" },
-      { no: "4.", nama: "Matematika", key: "mtk" },
-      { no: "5.", nama: "Ilmu Pengetahuan Alam dan Sosial (IPAS)", key: "ipas" },
-      { no: "6.", nama: "Seni Budaya dan Prakarya", key: "sbdp" },
-      { no: "7.", nama: "Pendidikan Jasmani, Olahraga & Kesehatan", key: "pjok" },
-      { no: "8.", nama: "Bahasa Inggris", key: "bing" },
-      { no: "9.", nama: `Muatan Lokal : ${data.nama_mulok1 || "Bahasa Sunda"}`, key: "mulok1" }
-    ];
-    if (data.nama_mulok2) mapelList.push({ no: "10.", nama: `Muatan Lokal : ${data.nama_mulok2}`, key: "mulok2" });
-    if (data.nama_mulok3) mapelList.push({ no: "11.", nama: `Muatan Lokal : ${data.nama_mulok3}`, key: "mulok3" });
-
-    const mapelRows = mapelList.map(m => `
-      <tr>
-        <td style="text-align: center;">${m.no}</td>
-        <td>${m.nama}</td>
-        <td style="text-align: center; font-weight: bold;">${formatNilaiVal(m.key)}</td>
-      </tr>
-    `).join("");
-
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
-    printWindow.document.write(`
-      <html><head><title>SKL - ${siswa.nama}</title>
-      <style>
-        @page { size: A4 portrait; margin: 15mm 20mm; }
-        body { font-family: 'Times New Roman', serif; font-size: 12pt; margin: 0; padding: 20px; background: #eee; color: #000; }
-        .surat-page { background: white; width: 210mm; min-height: 297mm; margin: 0 auto; padding: 15mm 20mm; box-sizing: border-box; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .kop-surat { text-align: center; margin-bottom: 20px; margin-left: -5mm; margin-right: -5mm; }
-        .kop-surat img { width: 100%; max-height: 140px; object-fit: contain; }
-        .judul-box { text-align: center; margin: 25px 0; }
-        .judul-box h2 { margin: 0; font-size: 14pt; text-decoration: underline; font-weight: bold; letter-spacing: 1px; }
-        .judul-box p { margin: 5px 0 0 0; font-size: 12pt; font-family: 'Times New Roman', serif; font-weight: bold; }
-        .isi-surat { text-align: justify; line-height: 1.6; font-size: 12pt; }
-        .identitas-table { margin-left: 30px; width: 90%; margin-top: 15px; margin-bottom: 15px; }
-        .identitas-table td { padding: 4px 0; vertical-align: top; }
-        .nilai-table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 11pt; color: #000; }
-        .nilai-table th, .nilai-table td { border: 1px solid black; padding: 5px 10px; color: #000; }
-        .nilai-table th { text-align: center; background-color: #f2f2f2; }
-        .footer-box { margin-top: 50px; display: flex; justify-content: space-between; align-items: flex-end; }
-        .qr-box { text-align: center; padding: 5px; border: 1px solid #ddd; border-radius: 6px; display: inline-block; }
-        .qr-box p { font-size: 7px; color: #888; margin: 3px 0 0 0; font-family: sans-serif; }
-        .ttd-box { width: 250px; text-align: center; font-size: 12pt; }
-        .ttd-name { font-weight: bold; text-decoration: underline; text-transform: uppercase; margin-top: 75px; }
-        .no-print { position: fixed; top: 20px; right: 20px; z-index: 1000; display: flex; gap: 10px; }
-        .btn { background: #D4A843; color: white; padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        /* Compact overrides for Format 1 (with grades table) */
-        .compact { padding: 12mm 18mm; }
-        .compact .kop-surat { margin-bottom: 14px; }
-        .compact .kop-surat img { max-height: 130px; }
-        .compact .judul-box { margin: 18px 0; }
-        .compact .judul-box h2 { font-size: 13pt; }
-        .compact .judul-box p { margin: 3px 0 0 0; font-size: 11pt; }
-        .compact .isi-surat { line-height: 1.4; font-size: 11.5pt; }
-        .compact .identitas-table { margin-top: 10px; margin-bottom: 10px; }
-        .compact .identitas-table td { padding: 2px 0; }
-        .compact .nilai-table { margin: 10px 0; font-size: 10.5pt; }
-        .compact .nilai-table th, .compact .nilai-table td { padding: 3px 8px; }
-        .compact .footer-box { margin-top: 30px; }
-        .compact .ttd-box { font-size: 11pt; }
-        .compact .ttd-name { margin-top: 60px; }
-        @media print { body { background: white; padding: 0; } .surat-page { margin: 0; box-shadow: none; padding: 5mm 10mm; min-height: auto; } .compact { padding: 5mm 10mm; } .no-print { display: none !important; } }
-      </style></head><body>
-        <div class="no-print">
-          <button class="btn" onclick="window.print()">🖨️ Cetak Sekarang</button>
-          <button class="btn" style="background:#64748b" onclick="window.close()">Tutup</button>
-        </div>
-        <div class="surat-page ${isFormat1 ? 'compact' : ''}">
-          <div class="kop-surat"><img src="${data.kop_surat_url || 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgHJHdzvsrvzHVMFsAmI_Ra_4vlYn39plogGMmNIUO7MV71T8zT9YWUFQyO5UD6oeSQ7jew1exTAXcI24JwK3eBiokcmNppHqGjvq70RTfjeYdZAhIahHq0D8m2Jrixl_8bb6BaFGhm0xpov4cojZ_ydeyOtE1xM7wrxn7FSMy0EP5KTuyqWVscaIkCyN3T/s955/KOP%20Baru.png'}" alt="KOP" /></div>
-          <div class="judul-box">
-            <h2>SURAT KETERANGAN LULUS</h2>
-            ${isFormat1 ? `<p>Tahun Pelajaran ${data.tahun_ajaran}</p>` : ``}
-            <p>Nomor : ${siswa.nomor_skl || "400.3.11/...../........./2026"}</p>
-          </div>
-          <div class="isi-surat">
-            ${isFormat1 ? `
-              <p>Yang bertanda tangan di bawah ini, Kepala ${data.nama_sekolah}, Nomor Pokok Sekolah Nasional ${data.npsn || SCHOOL.npsn} Kabupaten Sukabumi, menerangkan bahwa :</p>
-            ` : `
-              <p>Yang bertanda tangan di bawah ini Kepala ${data.nama_sekolah} Kabupaten Sukabumi Provinsi Jawa Barat, menerangkan bahwa :</p>
-              <p>berdasarkan Surat Keputusan Kepala ${data.nama_sekolah} nomor ${data.sk_lulus_nomor || SCHOOL.skLulusNomor} tentang ${data.sk_lulus_tentang || SCHOOL.skLulusTentang}, menerangkan nama peserta didik di bawah ini:</p>
-            `}
-            
-            <table class="identitas-table">
-              ${isFormat1 ? `
-                <tr><td width="35%">Nama</td><td width="2%">:</td><td style="font-weight:bold;text-transform:uppercase">${siswa.nama}</td></tr>
-                <tr><td>Tempat Tanggal Lahir</td><td>:</td><td>${siswa.tempat_lahir || "-"}, ${tglLahirFormatted}</td></tr>
-                <tr><td>Nama Orang Tua/Wali</td><td>:</td><td>${siswa.nama_ayah || siswa.nama_ibu || "-"}</td></tr>
-                <tr><td>Nomor Induk Siswa</td><td>:</td><td>${siswa.nis || "-"}</td></tr>
-                <tr><td>Nomor Induk Siswa Nasional</td><td>:</td><td><b>${siswa.nisn}</b></td></tr>
-              ` : `
-                <tr><td width="35%">Nama</td><td width="2%">:</td><td style="font-weight:bold;text-transform:uppercase">${siswa.nama}</td></tr>
-                <tr><td>Tempat Tanggal Lahir</td><td>:</td><td>${siswa.tempat_lahir || "-"}, ${tglLahirFormatted}</td></tr>
-                <tr><td>NISN</td><td>:</td><td><b>${siswa.nisn}</b></td></tr>
-              `}
-            </table>
-            
-            ${isFormat1 ? `
-              <div style="text-align: center; font-weight: bold; font-style: italic; margin-top: 15px; margin-bottom: 15px; font-size: 13pt;">L U L U S</div>
-              <p>dari ${data.nama_sekolah} pada tanggal ${formattedTglKelulusan}, setelah memenuhi kriteria sesuai dengan peraturan perundang-undangan dengan nilai sebagai berikut:</p>
-              <table class="nilai-table">
-                <thead>
-                  <tr>
-                    <th style="width: 8%;">No</th>
-                    <th style="width: 62%;">Mata Pelajaran</th>
-                    <th style="width: 30%;">Nilai</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${mapelRows}
-                  <tr style="background-color: #f2f2f2;">
-                    <td colspan="2" style="text-align: center; font-weight: bold;">Rata - Rata</td>
-                    <td style="text-align: center; font-weight: bold; font-size: 11.5pt;">${avgVal}</td>
-                  </tr>
-                </tbody>
-              </table>
-            ` : `
-              <p>Dinyatakan <b>LULUS</b> dari ${data.nama_sekolah} tahun ajaran ${data.tahun_ajaran} setelah memenuhi kriteria sesuai peraturan perundangan, dengan nilai rata-rata <b>${avgVal}</b> (<i>${avgTerbilang}</i>).</p>
-            `}
-            
-            ${!isFormat1 ? `<p style="margin-top: 20px;">Demikian Surat Keterangan ini dibuat sebagai salah satu syarat dalam penerimaan murid baru.</p>` : ``}
-          </div>
-          
-          <div class="footer-box">
-            <div class="qr-box">${qrSvg}<p>Scan untuk verifikasi</p></div>
-            <div class="ttd-box" style="position: relative;">
-              <p>${schoolKota}, ${formattedTglKelulusan}</p>
-              <p>Kepala,</p>
-              <div style="height: 120px; position: relative; display: flex; align-items: center; justify-content: center; margin-bottom: -5px; margin-top: 5px;">
-                ${showTtd && data.ttd_url ? `<img src="${data.ttd_url}" style="position: absolute; left: 50%; transform: translateX(-50%); max-height: 120px; object-fit: contain; z-index: 1; mix-blend-mode: multiply;" />` : ""}
-                ${showStempel && data.stempel_url ? `<img src="${data.stempel_url}" style="position: absolute; left: 50%; transform: translateX(-120px); max-height: 160px; object-fit: contain; z-index: 2; opacity: 0.9; mix-blend-mode: multiply;" />` : ""}
-              </div>
-              <div class="ttd-name" style="margin-top: ${(showTtd || showStempel) ? '10px' : (isFormat1 ? '60px' : '75px')}">${data.nama_kepsek || "___________________"}</div>
-              <div>NIP. ${data.nip_kepsek || "___________________"}</div>
-            </div>
-          </div>
-        </div>
-      </body></html>
-    `);
-    printWindow.document.close();
+  const handlePrintSKL = () => {
+    window.open(`/portal/kelulusan/skl/${nisn}?print=true&ttd=${showTtd}&stempel=${showStempel}`, "_blank");
   };
 
   if (loading) {
@@ -485,6 +316,15 @@ export default function ESklPage() {
           <button className="btn" onClick={() => window.print()} style={{ background: "linear-gradient(135deg, #D4A843, #b8860b)" }}>
             🖨️ Cetak Sekarang
           </button>
+
+          <button 
+            className="btn" 
+            onClick={() => handleDownloadJpg(false)} 
+            disabled={downloadingJpg}
+            style={{ background: "linear-gradient(135deg, #10B981, #059669)" }}
+          >
+            {downloadingJpg ? "⏳ Memproses..." : "🖼️ Unduh JPG"}
+          </button>
           
           <div style={{ display: "flex", gap: "20px", marginLeft: "20px" }}>
             {/* Toggle TTD */}
@@ -514,9 +354,9 @@ export default function ESklPage() {
             Tutup
           </button>
         </div>
-        <div className={`surat-page ${isFormat1 ? 'compact' : ''}`}>
+        <div ref={printAreaRef} className={`surat-page ${isFormat1 ? 'compact' : ''}`}>
           <div className="kop-surat">
-            <img src={data.kop_surat_url || 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgHJHdzvsrvzHVMFsAmI_Ra_4vlYn39plogGMmNIUO7MV71T8zT9YWUFQyO5UD6oeSQ7jew1exTAXcI24JwK3eBiokcmNppHqGjvq70RTfjeYdZAhIahHq0D8m2Jrixl_8bb6BaFGhm0xpov4cojZ_ydeyOtE1xM7wrxn7FSMy0EP5KTuyqWVscaIkCyN3T/s955/KOP%20Baru.png'} alt="KOP" />
+            <img crossOrigin="anonymous" src={data.kop_surat_url || 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgHJHdzvsrvzHVMFsAmI_Ra_4vlYn39plogGMmNIUO7MV71T8zT9YWUFQyO5UD6oeSQ7jew1exTAXcI24JwK3eBiokcmNppHqGjvq70RTfjeYdZAhIahHq0D8m2Jrixl_8bb6BaFGhm0xpov4cojZ_ydeyOtE1xM7wrxn7FSMy0EP5KTuyqWVscaIkCyN3T/s955/KOP%20Baru.png'} alt="KOP" />
           </div>
           <div className="judul-box">
             <h2>SURAT KETERANGAN LULUS</h2>
@@ -630,8 +470,8 @@ export default function ESklPage() {
               <p>{schoolKota}, {formattedTglKelulusan}</p>
               <p>Kepala,</p>
               <div style={{ height: "120px", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "-5px", marginTop: "5px" }}>
-                {showTtd && data.ttd_url && <img src={data.ttd_url} style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", maxHeight: "120px", objectFit: "contain", zIndex: 1, mixBlendMode: "multiply" }} alt="TTD" />}
-                {showStempel && data.stempel_url && <img src={data.stempel_url} style={{ position: "absolute", left: "50%", transform: "translateX(-120px)", maxHeight: "160px", objectFit: "contain", zIndex: 2, opacity: 0.9, mixBlendMode: "multiply" }} alt="Stempel" />}
+                {showTtd && data.ttd_url && <img crossOrigin="anonymous" src={data.ttd_url} style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", maxHeight: "120px", objectFit: "contain", zIndex: 1, mixBlendMode: "multiply" }} alt="TTD" />}
+                {showStempel && data.stempel_url && <img crossOrigin="anonymous" src={data.stempel_url} style={{ position: "absolute", left: "50%", transform: "translateX(-120px)", maxHeight: "160px", objectFit: "contain", zIndex: 2, opacity: 0.9, mixBlendMode: "multiply" }} alt="Stempel" />}
               </div>
               <div className="ttd-name" style={{ marginTop: (showTtd || showStempel) ? "10px" : (isFormat1 ? "60px" : "75px") }}>{data.nama_kepsek || "___________________"}</div>
               <div>NIP. {data.nip_kepsek || "___________________"}</div>
@@ -675,7 +515,7 @@ export default function ESklPage() {
           {/* Logo + School */}
           <div className="flex items-center justify-center gap-3 mb-4">
             {data.logo_url ? (
-              <img src={data.logo_url} alt="Logo" className="w-10 h-10 object-contain" />
+              <img crossOrigin="anonymous" src={data.logo_url} alt="Logo" className="w-10 h-10 object-contain" />
             ) : (
               <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
                 <GraduationCap size={20} className="text-amber-400" />
@@ -711,7 +551,7 @@ export default function ESklPage() {
           <div className="flex items-center gap-4 p-4 rounded-2xl" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}>
             <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-amber-500/30 shrink-0 bg-white/5">
               {siswa.foto_url ? (
-                <img src={siswa.foto_url} alt={siswa.nama} className="w-full h-full object-cover" />
+                <img crossOrigin="anonymous" src={siswa.foto_url} alt={siswa.nama} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-2xl font-black text-amber-400/40">{siswa.nama.charAt(0)}</div>
               )}
@@ -925,9 +765,23 @@ export default function ESklPage() {
           style={{ background: "linear-gradient(135deg, #D4A843, #b8860b)", boxShadow: "0 10px 25px -5px rgba(212,168,67,0.3)" }}>
           <Share2 size={18} /> Bagikan E-SKL
         </button>
-        <button onClick={handlePrintSKL} className="w-full py-3.5 rounded-2xl text-sm font-bold text-white/50 flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 transition-all border border-white/5">
-          <Download size={16} /> Unduh / Cetak
-        </button>
+        
+        <div className="grid grid-cols-2 gap-3">
+          <button 
+            onClick={() => handleDownloadJpg(true)} 
+            disabled={downloadingJpg}
+            className="py-3.5 rounded-2xl text-sm font-bold text-white/80 flex items-center justify-center gap-2 bg-emerald-600/20 hover:bg-emerald-600/30 transition-all border border-emerald-500/30"
+          >
+            <Download size={16} /> {downloadingJpg ? "Memproses..." : "Unduh Kartu (JPG)"}
+          </button>
+          
+          <button 
+            onClick={handlePrintSKL} 
+            className="py-3.5 rounded-2xl text-sm font-bold text-white/70 flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 transition-all border border-white/5"
+          >
+            <Download size={16} /> Resmi / Cetak
+          </button>
+        </div>
       </motion.div>
 
       {/* Footer */}
