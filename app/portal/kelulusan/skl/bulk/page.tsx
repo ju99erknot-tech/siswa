@@ -405,8 +405,8 @@ export default function BulkPrintPage() {
                 <p>{schoolKota}, {formattedTglKelulusan}</p>
                 <p>Kepala,</p>
                 <div style={{ height: "70px", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "-5px", marginTop: "5px" }}>
-                  {showTtd && data.ttd_url && <img src={data.ttd_url} style={{ position: "absolute", maxHeight: "70px", objectFit: "contain", zIndex: 1, mixBlendMode: "multiply" }} alt="TTD" />}
-                  {showStempel && data.stempel_url && <img src={data.stempel_url} style={{ position: "absolute", maxHeight: "80px", objectFit: "contain", zIndex: 2, left: "-25px", opacity: 0.9, mixBlendMode: "multiply" }} alt="Stempel" />}
+                  {showTtd && data.ttd_url && <img src={data.ttd_url} style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", maxHeight: "70px", objectFit: "contain", zIndex: 1, mixBlendMode: "multiply" }} alt="TTD" />}
+                  {showStempel && data.stempel_url && <img src={data.stempel_url} style={{ position: "absolute", left: "50%", transform: "translateX(-90px)", maxHeight: "80px", objectFit: "contain", zIndex: 2, opacity: 0.9, mixBlendMode: "multiply" }} alt="Stempel" />}
                 </div>
                 <div className="ttd-name" style={{ marginTop: (showTtd || showStempel) ? "10px" : (isFormat1 ? "60px" : "75px") }}>{data.nama_kepsek || "___________________"}</div>
                 <div>NIP. {data.nip_kepsek || "___________________"}</div>

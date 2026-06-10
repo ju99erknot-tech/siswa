@@ -323,8 +323,8 @@ export default function ESklPage() {
               <p>${schoolKota}, ${formattedTglKelulusan}</p>
               <p>Kepala,</p>
               <div style="height: 70px; position: relative; display: flex; align-items: center; justify-content: center; margin-bottom: -5px; margin-top: 5px;">
-                ${showTtd && data.ttd_url ? `<img src="${data.ttd_url}" style="position: absolute; max-height: 70px; object-fit: contain; z-index: 1; mix-blend-mode: multiply;" />` : ""}
-                ${showStempel && data.stempel_url ? `<img src="${data.stempel_url}" style="position: absolute; max-height: 80px; object-fit: contain; z-index: 2; left: -25px; opacity: 0.9; mix-blend-mode: multiply;" />` : ""}
+                ${showTtd && data.ttd_url ? `<img src="${data.ttd_url}" style="position: absolute; left: 50%; transform: translateX(-50%); max-height: 70px; object-fit: contain; z-index: 1; mix-blend-mode: multiply;" />` : ""}
+                ${showStempel && data.stempel_url ? `<img src="${data.stempel_url}" style="position: absolute; left: 50%; transform: translateX(-90px); max-height: 80px; object-fit: contain; z-index: 2; opacity: 0.9; mix-blend-mode: multiply;" />` : ""}
               </div>
               <div class="ttd-name" style="margin-top: ${(showTtd || showStempel) ? '10px' : (isFormat1 ? '60px' : '75px')}">${data.nama_kepsek || "___________________"}</div>
               <div>NIP. ${data.nip_kepsek || "___________________"}</div>
@@ -609,8 +609,8 @@ export default function ESklPage() {
               <p>{schoolKota}, {formattedTglKelulusan}</p>
               <p>Kepala,</p>
               <div style={{ height: "70px", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "-5px", marginTop: "5px" }}>
-                {showTtd && data.ttd_url && <img src={data.ttd_url} style={{ position: "absolute", maxHeight: "70px", objectFit: "contain", zIndex: 1, mixBlendMode: "multiply" }} alt="TTD" />}
-                {showStempel && data.stempel_url && <img src={data.stempel_url} style={{ position: "absolute", maxHeight: "80px", objectFit: "contain", zIndex: 2, left: "-25px", opacity: 0.9, mixBlendMode: "multiply" }} alt="Stempel" />}
+                {showTtd && data.ttd_url && <img src={data.ttd_url} style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", maxHeight: "70px", objectFit: "contain", zIndex: 1, mixBlendMode: "multiply" }} alt="TTD" />}
+                {showStempel && data.stempel_url && <img src={data.stempel_url} style={{ position: "absolute", left: "50%", transform: "translateX(-90px)", maxHeight: "80px", objectFit: "contain", zIndex: 2, opacity: 0.9, mixBlendMode: "multiply" }} alt="Stempel" />}
               </div>
               <div className="ttd-name" style={{ marginTop: (showTtd || showStempel) ? "10px" : (isFormat1 ? "60px" : "75px") }}>{data.nama_kepsek || "___________________"}</div>
               <div>NIP. {data.nip_kepsek || "___________________"}</div>
