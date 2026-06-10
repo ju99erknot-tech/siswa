@@ -126,21 +126,12 @@ export default function ESklPage() {
     setDownloadingJpg(true);
     try {
       const { toJpeg } = await import("html-to-image");
-      
-      const images = element.getElementsByTagName("img");
-      for (let i = 0; i < images.length; i++) {
-        const img = images[i];
-        if (img.src && !img.src.startsWith("data:")) {
-          img.crossOrigin = "anonymous";
-        }
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, 150));
 
       const dataUrl = await toJpeg(element, {
         quality: 0.98,
         backgroundColor: isCard ? "#050812" : "#ffffff",
         pixelRatio: 2.5,
+        cacheBust: true,
       });
 
       const link = document.createElement("a");
@@ -356,7 +347,7 @@ export default function ESklPage() {
         </div>
         <div ref={printAreaRef} className={`surat-page ${isFormat1 ? 'compact' : ''}`}>
           <div className="kop-surat">
-            <img crossOrigin="anonymous" src={data.kop_surat_url || 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgHJHdzvsrvzHVMFsAmI_Ra_4vlYn39plogGMmNIUO7MV71T8zT9YWUFQyO5UD6oeSQ7jew1exTAXcI24JwK3eBiokcmNppHqGjvq70RTfjeYdZAhIahHq0D8m2Jrixl_8bb6BaFGhm0xpov4cojZ_ydeyOtE1xM7wrxn7FSMy0EP5KTuyqWVscaIkCyN3T/s955/KOP%20Baru.png'} alt="KOP" />
+            <img src={data.kop_surat_url || 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgHJHdzvsrvzHVMFsAmI_Ra_4vlYn39plogGMmNIUO7MV71T8zT9YWUFQyO5UD6oeSQ7jew1exTAXcI24JwK3eBiokcmNppHqGjvq70RTfjeYdZAhIahHq0D8m2Jrixl_8bb6BaFGhm0xpov4cojZ_ydeyOtE1xM7wrxn7FSMy0EP5KTuyqWVscaIkCyN3T/s955/KOP%20Baru.png'} alt="KOP" />
           </div>
           <div className="judul-box">
             <h2>SURAT KETERANGAN LULUS</h2>
@@ -470,8 +461,8 @@ export default function ESklPage() {
               <p>{schoolKota}, {formattedTglKelulusan}</p>
               <p>Kepala,</p>
               <div style={{ height: "120px", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "-5px", marginTop: "5px" }}>
-                {showTtd && data.ttd_url && <img crossOrigin="anonymous" src={data.ttd_url} style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", maxHeight: "120px", objectFit: "contain", zIndex: 1, mixBlendMode: "multiply" }} alt="TTD" />}
-                {showStempel && data.stempel_url && <img crossOrigin="anonymous" src={data.stempel_url} style={{ position: "absolute", left: "50%", transform: "translateX(-120px)", maxHeight: "160px", objectFit: "contain", zIndex: 2, opacity: 0.9, mixBlendMode: "multiply" }} alt="Stempel" />}
+                {showTtd && data.ttd_url && <img src={data.ttd_url} style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", maxHeight: "120px", objectFit: "contain", zIndex: 1, mixBlendMode: "multiply" }} alt="TTD" />}
+                {showStempel && data.stempel_url && <img src={data.stempel_url} style={{ position: "absolute", left: "50%", transform: "translateX(-120px)", maxHeight: "160px", objectFit: "contain", zIndex: 2, opacity: 0.9, mixBlendMode: "multiply" }} alt="Stempel" />}
               </div>
               <div className="ttd-name" style={{ marginTop: (showTtd || showStempel) ? "10px" : (isFormat1 ? "60px" : "75px") }}>{data.nama_kepsek || "___________________"}</div>
               <div>NIP. {data.nip_kepsek || "___________________"}</div>
@@ -515,7 +506,7 @@ export default function ESklPage() {
           {/* Logo + School */}
           <div className="flex items-center justify-center gap-3 mb-4">
             {data.logo_url ? (
-              <img crossOrigin="anonymous" src={data.logo_url} alt="Logo" className="w-10 h-10 object-contain" />
+              <img src={data.logo_url} alt="Logo" className="w-10 h-10 object-contain" />
             ) : (
               <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
                 <GraduationCap size={20} className="text-amber-400" />
@@ -551,7 +542,7 @@ export default function ESklPage() {
           <div className="flex items-center gap-4 p-4 rounded-2xl" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}>
             <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-amber-500/30 shrink-0 bg-white/5">
               {siswa.foto_url ? (
-                <img crossOrigin="anonymous" src={siswa.foto_url} alt={siswa.nama} className="w-full h-full object-cover" />
+                <img src={siswa.foto_url} alt={siswa.nama} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-2xl font-black text-amber-400/40">{siswa.nama.charAt(0)}</div>
               )}
