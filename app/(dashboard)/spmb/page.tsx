@@ -44,6 +44,7 @@ export default function SpmbDashboard() {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("Semua");
   const [filterKelas, setFilterKelas] = useState("Semua");
+  const [filterJalur, setFilterJalur] = useState("Semua");
 
   // Verifikasi Modal State
   const [verifikasiData, setVerifikasiData] = useState<SpmbSmp | null>(null);
@@ -65,6 +66,10 @@ export default function SpmbDashboard() {
     new Set(dataSpmb.map((d) => d.siswa?.kelas).filter(Boolean)),
   ).sort();
 
+  const uniqueJalur = Array.from(
+    new Set(dataSpmb.map((d) => d.jalur_pendaftaran).filter(Boolean)),
+  ).sort();
+
   // Filter Data
   const filtered = dataSpmb.filter((item) => {
     const q = search.toLowerCase();
@@ -75,6 +80,7 @@ export default function SpmbDashboard() {
     if (q && !(nama.includes(q) || nisn.includes(q))) return false;
     if (filterStatus !== "Semua" && item.status !== filterStatus) return false;
     if (filterKelas !== "Semua" && kelas !== filterKelas) return false;
+    if (filterJalur !== "Semua" && (item.jalur_pendaftaran || "Zonasi") !== filterJalur) return false;
 
     return true;
   });
@@ -229,7 +235,7 @@ export default function SpmbDashboard() {
           <select
             value={filterKelas}
             onChange={(e) => setFilterKelas(e.target.value)}
-            className="h-11 px-3 md:px-4 w-1/2 md:w-auto rounded-xl text-xs md:text-sm text-white/80 outline-none appearance-none cursor-pointer text-ellipsis overflow-hidden whitespace-nowrap"
+            className="h-11 px-3 md:px-4 w-1/3 md:w-auto rounded-xl text-xs md:text-sm text-white/80 outline-none appearance-none cursor-pointer text-ellipsis overflow-hidden whitespace-nowrap"
             style={{
               background: "rgba(255,255,255,0.04)",
               border: "1px solid rgba(255,255,255,0.06)",
@@ -243,9 +249,25 @@ export default function SpmbDashboard() {
             ))}
           </select>
           <select
+            value={filterJalur}
+            onChange={(e) => setFilterJalur(e.target.value)}
+            className="h-11 px-3 md:px-4 w-1/3 md:w-auto rounded-xl text-xs md:text-sm text-white/80 outline-none appearance-none cursor-pointer text-ellipsis overflow-hidden whitespace-nowrap"
+            style={{
+              background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.06)",
+            }}
+          >
+            <option value="Semua">Semua Jalur</option>
+            {uniqueJalur.map((j) => (
+              <option key={String(j)} value={String(j)}>
+                {String(j)}
+              </option>
+            ))}
+          </select>
+          <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="h-11 px-3 md:px-4 w-1/2 md:w-auto rounded-xl text-xs md:text-sm text-white/80 outline-none appearance-none cursor-pointer text-ellipsis overflow-hidden whitespace-nowrap"
+            className="h-11 px-3 md:px-4 w-1/3 md:w-auto rounded-xl text-xs md:text-sm text-white/80 outline-none appearance-none cursor-pointer text-ellipsis overflow-hidden whitespace-nowrap"
             style={{
               background: "rgba(255,255,255,0.04)",
               border: "1px solid rgba(255,255,255,0.06)",
