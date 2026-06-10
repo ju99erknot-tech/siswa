@@ -128,6 +128,13 @@ export default function ESklPage() {
     const imgElements = element.getElementsByTagName("img");
     const originalSrcs: { img: HTMLImageElement; src: string }[] = [];
     
+    // Save original styles so we can restore after capture
+    const origWidth = element.style.width;
+    const origMinHeight = element.style.minHeight;
+    const origOverflow = element.style.overflow;
+    const origMarginLeft = element.style.marginLeft;
+    const origMarginRight = element.style.marginRight;
+    
     try {
       // Convert all images to base64 via server-side proxy to bypass CORS
       const conversionPromises = Array.from(imgElements).map(async (img) => {
@@ -163,21 +170,34 @@ export default function ESklPage() {
       
       await Promise.all(conversionPromises);
 
-      // Small delay to let browser re-render with base64 images
-      await new Promise(resolve => setTimeout(resolve, 200));
+      // Force pixel-based width so html-to-image can measure correctly
+      // 210mm ≈ 794px at 96 DPI
+      if (!isCard) {
+        element.style.width = "794px";
+        element.style.minHeight = "auto";
+        element.style.overflow = "visible";
+        element.style.marginLeft = "0";
+        element.style.marginRight = "0";
+      }
+
+      // Let browser re-layout with new styles + base64 images
+      await new Promise(resolve => setTimeout(resolve, 300));
 
       const { toJpeg } = await import("html-to-image");
+
+      // Measure actual rendered size
+      const rect = element.getBoundingClientRect();
 
       const dataUrl = await toJpeg(element, {
         quality: 0.98,
         backgroundColor: isCard ? "#050812" : "#ffffff",
         pixelRatio: 2.5,
+        width: Math.ceil(rect.width),
+        height: Math.ceil(rect.height),
         cacheBust: true,
-        // Filter out problematic elements
-        filter: (node: HTMLElement) => {
-          // Skip hidden elements
-          if (node.style && node.style.display === 'none') return false;
-          return true;
+        style: {
+          margin: "0",
+          transform: "none",
         },
       });
 
@@ -189,7 +209,15 @@ export default function ESklPage() {
       console.error("Failed to download JPG", err);
       alert("Gagal mengunduh JPG. Beberapa gambar eksternal mungkin membatasi unduhan langsung. Anda dapat mencoba menggunakan fitur print browser (Ctrl+P / Simpan sebagai PDF).");
     } finally {
-      // Restore original sources
+      // Restore original styles
+      if (!isCard) {
+        element.style.width = origWidth;
+        element.style.minHeight = origMinHeight;
+        element.style.overflow = origOverflow;
+        element.style.marginLeft = origMarginLeft;
+        element.style.marginRight = origMarginRight;
+      }
+      // Restore original image sources
       for (const { img, src } of originalSrcs) {
         img.src = src;
       }
