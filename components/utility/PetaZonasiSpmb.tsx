@@ -149,7 +149,7 @@ export default function PetaZonasiSpmb() {
     const printWindow = window.open("", "_blank");
     if (!printWindow) return alert("Pop-up diblokir! Izinkan pop-up untuk mencetak.");
 
-    const logoUrl = pengaturan?.logo_url || "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiic6USPGMyGFvLp9UWnNTTH-3KcNC8JjSO244ccIHaLvZYNWqQ-wTxeXc-pGnTVqwoGu9ke2HqNZNy9gggjlsZtU_WEdtBM7Bo0p2PcTK8-hrkLs4xB2gpgnFT86b9oopqT-AWz2Pd-aKzWkOZnmOE8uWP-LHMDlJ3YtLZ1ZU-QLgLdl3dD4Vwce0Ylx1A/s166/sdn2cbd%20small.png";
+    const logoUrl = pengaturan?.logo_url || "/logo_sekolah.png";
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(
       `ZONASI SPMB\nNama: ${result.siswa.nama}\nNISN: ${result.siswa.nisn}\nTujuan: ${result.targetName}\nJarak: ${formatJarak(result.distanceMeters)}`
     )}`;

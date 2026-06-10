@@ -44,7 +44,7 @@ export default function LabelSampulRapor() {
 
   const LOGO_SEKOLAH_URL =
     pengaturan?.logo_url ||
-    "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiic6USPGMyGFvLp9UWnNTTH-3KcNC8JjSO244ccIHaLvZYNWqQ-wTxeXc-pGnTVqwoGu9ke2HqNZNy9gggjlsZtU_WEdtBM7Bo0p2PcTK8-hrkLs4xB2gpgnFT86b9oopqT-AWz2Pd-aKzWkOZnmOE8uWP-LHMDlJ3YtLZ1ZU-QLgLdl3dD4Vwce0Ylx1A/s166/sdn2cbd%20small.png";
+    "/logo_sekolah.png";
 
   const handlePrint = (targetSiswa?: any) => {
     const listToPrint = targetSiswa ? [targetSiswa] : filteredSiswa;

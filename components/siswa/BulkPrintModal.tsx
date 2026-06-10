@@ -135,7 +135,7 @@ export function BulkPrintModal({ selectedSiswa, onClose }: BulkPrintModalProps) 
         allPagesHtml += `
           <div class="surat-page">
             <div class="kop-surat">
-              <img src="${pengaturan?.kop_surat_url || 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgHJHdzvsrvzHVMFsAmI_Ra_4vlYn39plogGMmNIUO7MV71T8zT9YWUFQyO5UD6oeSQ7jew1exTAXcI24JwK3eBiokcmNppHqGjvq70RTfjeYdZAhIahHq0D8m2Jrixl_8bb6BaFGhm0xpov4cojZ_ydeyOtE1xM7wrxn7FSMy0EP5KTuyqWVscaIkCyN3T/s955/KOP%20Baru.png'}" alt="KOP" />
+              <img src="${pengaturan?.kop_surat_url || '/KOP_Baru.png'}" alt="KOP" />
             </div>
             
             <div class="judul-box">

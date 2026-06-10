@@ -37,7 +37,7 @@ export default function QRCodeGenerator() {
   const [customLabel, setCustomLabel] = useState("");
   const [customList, setCustomList] = useState<{id: string, text: string, label: string}[]>([]);
 
-  const LOGO_SEKOLAH_URL = pengaturan?.logo_url || "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiic6USPGMyGFvLp9UWnNTTH-3KcNC8JjSO244ccIHaLvZYNWqQ-wTxeXc-pGnTVqwoGu9ke2HqNZNy9gggjlsZtU_WEdtBM7Bo0p2PcTK8-hrkLs4xB2gpgnFT86b9oopqT-AWz2Pd-aKzWkOZnmOE8uWP-LHMDlJ3YtLZ1ZU-QLgLdl3dD4Vwce0Ylx1A/s166/sdn2cbd%20small.png";
+  const LOGO_SEKOLAH_URL = pengaturan?.logo_url || "/logo_sekolah.png";
 
   const handleAddCustom = () => {
     if (!customText.trim()) return;
