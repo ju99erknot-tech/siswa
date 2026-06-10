@@ -91,14 +91,6 @@ export default function ESklPage() {
     }
   }, []);
 
-  useEffect(() => {
-    if (data && isPrintMode) {
-      const timer = setTimeout(() => {
-        window.print();
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [data, isPrintMode]);
 
   const verifyUrl = typeof window !== "undefined"
     ? `${window.location.origin}/portal/kelulusan/skl/${nisn}`
@@ -322,9 +314,9 @@ export default function ESklPage() {
             <div class="ttd-box" style="position: relative;">
               <p>${schoolKota}, ${formattedTglKelulusan}</p>
               <p>Kepala,</p>
-              <div style="height: 70px; position: relative; display: flex; align-items: center; justify-content: center; margin-bottom: -5px; margin-top: 5px;">
-                ${showTtd && data.ttd_url ? `<img src="${data.ttd_url}" style="position: absolute; left: 50%; transform: translateX(-50%); max-height: 70px; object-fit: contain; z-index: 1; mix-blend-mode: multiply;" />` : ""}
-                ${showStempel && data.stempel_url ? `<img src="${data.stempel_url}" style="position: absolute; left: 50%; transform: translateX(-90px); max-height: 80px; object-fit: contain; z-index: 2; opacity: 0.9; mix-blend-mode: multiply;" />` : ""}
+              <div style="height: 120px; position: relative; display: flex; align-items: center; justify-content: center; margin-bottom: -5px; margin-top: 5px;">
+                ${showTtd && data.ttd_url ? `<img src="${data.ttd_url}" style="position: absolute; left: 50%; transform: translateX(-50%); max-height: 120px; object-fit: contain; z-index: 1; mix-blend-mode: multiply;" />` : ""}
+                ${showStempel && data.stempel_url ? `<img src="${data.stempel_url}" style="position: absolute; left: 50%; transform: translateX(-120px); max-height: 160px; object-fit: contain; z-index: 2; opacity: 0.9; mix-blend-mode: multiply;" />` : ""}
               </div>
               <div class="ttd-name" style="margin-top: ${(showTtd || showStempel) ? '10px' : (isFormat1 ? '60px' : '75px')}">${data.nama_kepsek || "___________________"}</div>
               <div>NIP. ${data.nip_kepsek || "___________________"}</div>
@@ -458,7 +450,7 @@ export default function ESklPage() {
           .qr-box p { font-size: 7px; color: #888; margin: 3px 0 0 0; font-family: sans-serif; }
           .ttd-box { width: 250px; text-align: center; font-size: 12pt; color: #000; }
           .ttd-name { font-weight: bold; text-decoration: underline; text-transform: uppercase; margin-top: 75px; color: #000; }
-          .no-print { position: fixed; top: 20px; right: 20px; z-index: 1000; display: flex; gap: 10px; }
+          .no-print { display: flex; gap: 10px; margin-bottom: 20px; }
           .btn { background: #D4A843; color: white; padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
           /* Compact overrides for Format 1 */
           .compact { padding: 12mm 18mm; }
@@ -489,9 +481,38 @@ export default function ESklPage() {
             .no-print { display: none !important; } 
           }
         ` }} />
-        <div className="no-print">
-          <button className="btn" onClick={() => window.print()}>🖨️ Cetak Sekarang</button>
-          <button className="btn" style={{ background: "#64748b" }} onClick={() => window.close()}>Tutup</button>
+        <div className="no-print" style={{ display: "flex", gap: "16px", alignItems: "center", background: "rgba(15, 23, 42, 0.9)", padding: "16px 24px", borderRadius: "20px", marginBottom: "25px", border: "1px solid rgba(255, 255, 255, 0.08)", backdropFilter: "blur(12px)" }}>
+          <button className="btn" onClick={() => window.print()} style={{ background: "linear-gradient(135deg, #D4A843, #b8860b)" }}>
+            🖨️ Cetak Sekarang
+          </button>
+          
+          <div style={{ display: "flex", gap: "20px", marginLeft: "20px" }}>
+            {/* Toggle TTD */}
+            <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", color: "rgba(255, 255, 255, 0.8)", fontSize: "12px", fontWeight: "bold", userSelect: "none" }}>
+              <input 
+                type="checkbox" 
+                checked={showTtd} 
+                onChange={(e) => setShowTtd(e.target.checked)} 
+                style={{ cursor: "pointer", width: "16px", height: "16px", accentColor: "#D4A843" }} 
+              />
+              Tampilkan Tanda Tangan
+            </label>
+
+            {/* Toggle Stempel */}
+            <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", color: "rgba(255, 255, 255, 0.8)", fontSize: "12px", fontWeight: "bold", userSelect: "none" }}>
+              <input 
+                type="checkbox" 
+                checked={showStempel} 
+                onChange={(e) => setShowStempel(e.target.checked)} 
+                style={{ cursor: "pointer", width: "16px", height: "16px", accentColor: "#D4A843" }} 
+              />
+              Tampilkan Stempel
+            </label>
+          </div>
+
+          <button className="btn" style={{ background: "rgba(255, 255, 255, 0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)", marginLeft: "auto" }} onClick={() => window.close()}>
+            Tutup
+          </button>
         </div>
         <div className={`surat-page ${isFormat1 ? 'compact' : ''}`}>
           <div className="kop-surat">
@@ -608,9 +629,9 @@ export default function ESklPage() {
             <div className="ttd-box" style={{ position: "relative" }}>
               <p>{schoolKota}, {formattedTglKelulusan}</p>
               <p>Kepala,</p>
-              <div style={{ height: "70px", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "-5px", marginTop: "5px" }}>
-                {showTtd && data.ttd_url && <img src={data.ttd_url} style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", maxHeight: "70px", objectFit: "contain", zIndex: 1, mixBlendMode: "multiply" }} alt="TTD" />}
-                {showStempel && data.stempel_url && <img src={data.stempel_url} style={{ position: "absolute", left: "50%", transform: "translateX(-90px)", maxHeight: "80px", objectFit: "contain", zIndex: 2, opacity: 0.9, mixBlendMode: "multiply" }} alt="Stempel" />}
+              <div style={{ height: "120px", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "-5px", marginTop: "5px" }}>
+                {showTtd && data.ttd_url && <img src={data.ttd_url} style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", maxHeight: "120px", objectFit: "contain", zIndex: 1, mixBlendMode: "multiply" }} alt="TTD" />}
+                {showStempel && data.stempel_url && <img src={data.stempel_url} style={{ position: "absolute", left: "50%", transform: "translateX(-120px)", maxHeight: "160px", objectFit: "contain", zIndex: 2, opacity: 0.9, mixBlendMode: "multiply" }} alt="Stempel" />}
               </div>
               <div className="ttd-name" style={{ marginTop: (showTtd || showStempel) ? "10px" : (isFormat1 ? "60px" : "75px") }}>{data.nama_kepsek || "___________________"}</div>
               <div>NIP. {data.nip_kepsek || "___________________"}</div>

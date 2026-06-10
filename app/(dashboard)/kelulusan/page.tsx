@@ -102,6 +102,27 @@ export default function KelulusanPage() {
     sbdp: "", pjok: "", mulok1: "", mulok2: "", mulok3: ""
   });
 
+  // Modal Cetak Satuan (TTD & Stempel toggle)
+  const [printModalSiswa, setPrintModalSiswa] = useState<SiswaKelulusan | null>(null);
+  const [printShowTtd, setPrintShowTtd] = useState(true);
+  const [printShowStempel, setPrintShowStempel] = useState(true);
+
+  const openPrintModal = (s: SiswaKelulusan) => {
+    setPrintShowTtd(true);
+    setPrintShowStempel(true);
+    setPrintModalSiswa(s);
+  };
+
+  const handleCetakSatuan = () => {
+    if (!printModalSiswa) return;
+    const params = new URLSearchParams();
+    params.set("print", "true");
+    if (!printShowTtd) params.set("ttd", "false");
+    if (!printShowStempel) params.set("stempel", "false");
+    window.open(`/portal/kelulusan/skl/${printModalSiswa.nisn}?${params.toString()}`, "_blank");
+    setPrintModalSiswa(null);
+  };
+
   // Modal Bulk Generate Nomor SKL
   const [showBulkNumberModal, setShowBulkNumberModal] = useState(false);
   const [bulkTemplate, setBulkTemplate] = useState("400.3.11/{seq}/........./2026");
@@ -734,7 +755,7 @@ export default function KelulusanPage() {
                           <XCircle size={14} />
                         </button>
                         <button
-                          onClick={() => window.open(`/portal/kelulusan/skl/${s.nisn}?print=true`, "_blank")}
+                          onClick={() => openPrintModal(s)}
                           disabled={s.status_kelulusan !== "LULUS"}
                           title={s.status_kelulusan === "LULUS" ? "Cetak SKL" : "Siswa belum lulus"}
                           className={cn(
@@ -925,6 +946,79 @@ export default function KelulusanPage() {
                 style={{ background: "linear-gradient(135deg, #D4A843, #b8860b)" }}>
                 {saving ? <Loader2 size={12} className="animate-spin" /> : <Calculator size={12} />}
                 Generate Sekarang
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* ── MODAL CETAK SATUAN (TTD & Stempel Toggle) ── */}
+      {printModalSiswa && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-sm rounded-2xl overflow-hidden border border-white/10"
+            style={{ background: "linear-gradient(135deg, #0e1630 0%, #080d1e 100%)", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5)" }}>
+            
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-white text-base flex items-center gap-2">
+                  <Printer size={16} className="text-sky-400" /> Cetak SKL
+                </h3>
+                <p className="text-xs text-white/40 mt-0.5">{printModalSiswa.nama} • NISN: {printModalSiswa.nisn}</p>
+              </div>
+              <button onClick={() => setPrintModalSiswa(null)} className="text-white/40 hover:text-white transition-colors">
+                <XCircle size={20} />
+              </button>
+            </div>
+
+            {/* Body - Toggle TTD & Stempel */}
+            <div className="p-6 space-y-4">
+              <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Pengaturan Cetak</p>
+              <div className="space-y-3">
+                {/* Toggle TTD */}
+                <label className="flex items-center justify-between p-3.5 bg-white/[0.03] border border-white/5 rounded-xl cursor-pointer hover:bg-white/5 transition-all group">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 text-sm">✍️</div>
+                    <div>
+                      <span className="text-sm font-bold text-white/90 group-hover:text-amber-400 transition-colors">Tanda Tangan</span>
+                      <p className="text-[10px] text-white/35">Tampilkan TTD Kepala Sekolah</p>
+                    </div>
+                  </div>
+                  <div className="relative flex items-center justify-center shrink-0">
+                    <input type="checkbox" checked={printShowTtd} onChange={(e) => setPrintShowTtd(e.target.checked)} className="peer sr-only" />
+                    <div className="w-10 h-5.5 bg-white/10 rounded-full peer-checked:bg-amber-500 transition-colors border border-white/5" />
+                    <div className="absolute left-0.5 w-4.5 h-4.5 bg-white rounded-full transition-transform peer-checked:translate-x-[18px] shadow-sm" />
+                  </div>
+                </label>
+
+                {/* Toggle Stempel */}
+                <label className="flex items-center justify-between p-3.5 bg-white/[0.03] border border-white/5 rounded-xl cursor-pointer hover:bg-white/5 transition-all group">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 text-sm">🔏</div>
+                    <div>
+                      <span className="text-sm font-bold text-white/90 group-hover:text-sky-400 transition-colors">Stempel Resmi</span>
+                      <p className="text-[10px] text-white/35">Tampilkan stempel sekolah</p>
+                    </div>
+                  </div>
+                  <div className="relative flex items-center justify-center shrink-0">
+                    <input type="checkbox" checked={printShowStempel} onChange={(e) => setPrintShowStempel(e.target.checked)} className="peer sr-only" />
+                    <div className="w-10 h-5.5 bg-white/10 rounded-full peer-checked:bg-sky-500 transition-colors border border-white/5" />
+                    <div className="absolute left-0.5 w-4.5 h-4.5 bg-white rounded-full transition-transform peer-checked:translate-x-[18px] shadow-sm" />
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-white/5 bg-black/20 flex justify-end gap-2.5">
+              <button onClick={() => setPrintModalSiswa(null)} className="px-4 py-2.5 rounded-xl text-xs font-bold text-white/60 bg-white/5 border border-white/5 hover:bg-white/10 transition-all">
+                Batal
+              </button>
+              <button onClick={handleCetakSatuan}
+                className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold text-white transition-all hover:-translate-y-0.5"
+                style={{ background: "linear-gradient(135deg, #D4A843, #b8860b)", boxShadow: "0 4px 15px -3px rgba(212,168,67,0.3)" }}>
+                <Printer size={14} /> Cetak Sekarang
               </button>
             </div>
           </motion.div>
