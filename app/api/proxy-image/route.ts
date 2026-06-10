@@ -25,9 +25,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Image URL is required' }, { status: 400 })
     }
 
-    // Validate that it's a Google Drive URL
-    if (!imageUrl.includes('googleusercontent.com') && !imageUrl.includes('drive.google.com')) {
-      return NextResponse.json({ error: 'Only Google Drive URLs are allowed' }, { status: 400 })
+    // Validate that it's an external URL (http/https)
+    if (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://')) {
+      return NextResponse.json({ error: 'Only http/https URLs are allowed' }, { status: 400 })
     }
 
     // Fetch the image

@@ -124,7 +124,48 @@ export default function ESklPage() {
     const element = isCard ? certRef.current : printAreaRef.current;
     if (!element) return;
     setDownloadingJpg(true);
+    
+    const imgElements = element.getElementsByTagName("img");
+    const originalSrcs: { img: HTMLImageElement; src: string }[] = [];
+    
     try {
+      // Convert all images to base64 via server-side proxy to bypass CORS
+      const conversionPromises = Array.from(imgElements).map(async (img) => {
+        const currentSrc = img.getAttribute("src") || img.src;
+        if (currentSrc && !currentSrc.startsWith("data:") && !currentSrc.startsWith("blob:")) {
+          originalSrcs.push({ img, src: currentSrc });
+          
+          try {
+            // Use proxy for external URLs, direct fetch for local ones
+            const isExternal = currentSrc.startsWith("http://") || currentSrc.startsWith("https://");
+            const fetchUrl = isExternal
+              ? `/api/proxy-image?url=${encodeURIComponent(currentSrc)}`
+              : currentSrc;
+
+            const res = await fetch(fetchUrl);
+            if (res.ok) {
+              const blob = await res.blob();
+              const base64 = await new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result as string);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+              });
+              img.src = base64;
+            } else {
+              console.warn(`Proxy fetch failed for: ${currentSrc}`, res.status);
+            }
+          } catch (fetchErr) {
+            console.warn("Skipped base64 conversion for image:", currentSrc, fetchErr);
+          }
+        }
+      });
+      
+      await Promise.all(conversionPromises);
+
+      // Small delay to let browser re-render with base64 images
+      await new Promise(resolve => setTimeout(resolve, 200));
+
       const { toJpeg } = await import("html-to-image");
 
       const dataUrl = await toJpeg(element, {
@@ -132,6 +173,12 @@ export default function ESklPage() {
         backgroundColor: isCard ? "#050812" : "#ffffff",
         pixelRatio: 2.5,
         cacheBust: true,
+        // Filter out problematic elements
+        filter: (node: HTMLElement) => {
+          // Skip hidden elements
+          if (node.style && node.style.display === 'none') return false;
+          return true;
+        },
       });
 
       const link = document.createElement("a");
@@ -142,6 +189,10 @@ export default function ESklPage() {
       console.error("Failed to download JPG", err);
       alert("Gagal mengunduh JPG. Beberapa gambar eksternal mungkin membatasi unduhan langsung. Anda dapat mencoba menggunakan fitur print browser (Ctrl+P / Simpan sebagai PDF).");
     } finally {
+      // Restore original sources
+      for (const { img, src } of originalSrcs) {
+        img.src = src;
+      }
       setDownloadingJpg(false);
     }
   };
