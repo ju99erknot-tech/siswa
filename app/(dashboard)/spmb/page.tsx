@@ -67,8 +67,13 @@ export default function SpmbDashboard() {
   ).sort();
 
   const uniqueJalur = Array.from(
-    new Set(dataSpmb.map((d) => d.jalur_pendaftaran).filter(Boolean)),
+    new Set(dataSpmb.map((d) => d.jalur_pendaftaran || "Zonasi")),
   ).sort();
+
+  // Helper counts
+  const getKelasCount = (k: string) => dataSpmb.filter((d) => d.siswa?.kelas === k).length;
+  const getJalurCount = (j: string) => dataSpmb.filter((d) => (d.jalur_pendaftaran || "Zonasi") === j).length;
+  const getStatusCount = (s: string) => dataSpmb.filter((d) => d.status === s).length;
 
   // Filter Data
   const filtered = dataSpmb.filter((item) => {
@@ -241,10 +246,10 @@ export default function SpmbDashboard() {
               border: "1px solid rgba(255,255,255,0.06)",
             }}
           >
-            <option value="Semua">Semua Kelas</option>
+            <option value="Semua">Semua Kelas ({dataSpmb.length})</option>
             {uniqueKelas.map((k) => (
               <option key={String(k)} value={String(k)}>
-                Kelas {String(k)}
+                Kelas {String(k)} ({getKelasCount(String(k))})
               </option>
             ))}
           </select>
@@ -257,10 +262,10 @@ export default function SpmbDashboard() {
               border: "1px solid rgba(255,255,255,0.06)",
             }}
           >
-            <option value="Semua">Semua Jalur</option>
+            <option value="Semua">Semua Jalur ({dataSpmb.length})</option>
             {uniqueJalur.map((j) => (
               <option key={String(j)} value={String(j)}>
-                {String(j)}
+                {String(j)} ({getJalurCount(String(j))})
               </option>
             ))}
           </select>
@@ -273,13 +278,13 @@ export default function SpmbDashboard() {
               border: "1px solid rgba(255,255,255,0.06)",
             }}
           >
-            <option value="Semua">Semua Status</option>
-            <option value="Belum Diisi">Belum Diisi</option>
-            <option value="Menunggu Verifikasi">Menunggu Verif</option>
-            <option value="Perlu Perbaikan">Perlu Perbaikan</option>
-            <option value="Valid & Lengkap">Valid & Lengkap</option>
-            <option value="Didaftarkan">Didaftarkan</option>
-            <option value="Selesai">Selesai</option>
+            <option value="Semua">Semua Status ({dataSpmb.length})</option>
+            <option value="Belum Diisi">Belum Diisi ({getStatusCount("Belum Diisi")})</option>
+            <option value="Menunggu Verifikasi">Menunggu Verif ({getStatusCount("Menunggu Verifikasi")})</option>
+            <option value="Perlu Perbaikan">Perlu Perbaikan ({getStatusCount("Perlu Perbaikan")})</option>
+            <option value="Valid & Lengkap">Valid & Lengkap ({getStatusCount("Valid & Lengkap")})</option>
+            <option value="Didaftarkan">Didaftarkan ({getStatusCount("Didaftarkan")})</option>
+            <option value="Selesai">Selesai ({getStatusCount("Selesai")})</option>
           </select>
         </div>
         <button
