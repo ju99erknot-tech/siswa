@@ -330,8 +330,8 @@ export default function PortalSpmb() {
           bestPosition = position;
         }
         
-        // If accuracy is high enough (<= 25 meters), stop watching immediately and use it
-        if (position.coords.accuracy <= 25) {
+        // If accuracy is high enough (<= 12 meters), stop watching immediately and use it
+        if (position.coords.accuracy <= 12) {
           clearTimeout(timeoutId);
           stopWatching();
           setLintang(position.coords.latitude.toString());
@@ -1060,7 +1060,7 @@ export default function PortalSpmb() {
                           <MapContainer
                             key={`${mapMountId}-${mapCenterKey}`}
                             center={[latNum, lngNum]}
-                            zoom={15}
+                            zoom={18}
                             scrollWheelZoom={false}
                             className="h-full w-full"
                             style={{ background: '#0e1520' }}
