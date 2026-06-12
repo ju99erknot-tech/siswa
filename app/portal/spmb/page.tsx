@@ -119,6 +119,7 @@ export default function PortalSpmb() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
   const [mapMountId, setMapMountId] = useState(0);
+  const [mapCenterKey, setMapCenterKey] = useState(0);
 
   // Upload Modal State
   type DocType = "ktpAyah" | "ktpIbu" | "kk" | "akta" | "pendukung";
@@ -273,6 +274,9 @@ export default function PortalSpmb() {
         setSekolah1(json.spmb.sekolah_tujuan_1 || "");
         setSekolah2(json.spmb.sekolah_tujuan_2 || "");
         if (json.spmb.jalur_pendaftaran) setJalur(json.spmb.jalur_pendaftaran);
+        if (json.spmb.lintang && json.spmb.bujur) {
+          setMapCenterKey(prev => prev + 1);
+        }
       }
       if (json.siswa.no_wa) setNoWa(json.siswa.no_wa);
       
@@ -292,21 +296,72 @@ export default function PortalSpmb() {
     }
     
     setIsLocating(true);
-    const toastId = toast.loading("Mencari lokasi Anda, pastikan Anda sedang berada di rumah...");
+    const toastId = toast.loading("Menghubungkan ke satelit GPS untuk lokasi akurat. Harap tunggu sebentar...");
     
-    navigator.geolocation.getCurrentPosition(
+    let watchId: number | null = null;
+    let bestPosition: GeolocationPosition | null = null;
+    
+    const stopWatching = () => {
+      if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+      }
+    };
+    
+    // Timeout backup: take best position after 8 seconds if not reached accuracy threshold
+    const timeoutId = setTimeout(() => {
+      stopWatching();
+      if (bestPosition) {
+        setLintang(bestPosition.coords.latitude.toString());
+        setBujur(bestPosition.coords.longitude.toString());
+        setMapCenterKey(prev => prev + 1);
+        const accuracy = bestPosition.coords.accuracy.toFixed(0);
+        toast.success(`Lokasi didapatkan (akurasi ~${accuracy}m). Silakan geser pin jika meleset!`, { id: toastId });
+      } else {
+        toast.error("Gagal mendapatkan lokasi GPS yang akurat. Pastikan GPS aktif dan izin lokasi diberikan.", { id: toastId });
+      }
+      setIsLocating(false);
+    }, 8000);
+    
+    watchId = navigator.geolocation.watchPosition(
       (position) => {
-        setLintang(position.coords.latitude.toString());
-        setBujur(position.coords.longitude.toString());
-        toast.success("Titik koordinat berhasil didapatkan!", { id: toastId });
-        setIsLocating(false);
+        // Track the best position (lowest accuracy value = most precise)
+        if (!bestPosition || position.coords.accuracy < bestPosition.coords.accuracy) {
+          bestPosition = position;
+        }
+        
+        // If accuracy is high enough (<= 25 meters), stop watching immediately and use it
+        if (position.coords.accuracy <= 25) {
+          clearTimeout(timeoutId);
+          stopWatching();
+          setLintang(position.coords.latitude.toString());
+          setBujur(position.coords.longitude.toString());
+          setMapCenterKey(prev => prev + 1);
+          toast.success("Lokasi sangat akurat berhasil didapatkan!", { id: toastId });
+          setIsLocating(false);
+        } else {
+          // Update progress message in toast
+          toast.loading(`Meningkatkan akurasi GPS: ~${position.coords.accuracy.toFixed(0)}m...`, { id: toastId });
+        }
       },
       (error) => {
         console.error(error);
-        toast.error("Gagal mendapatkan lokasi. Pastikan GPS HP Anda aktif dan Anda mengizinkan akses lokasi di browser.", { id: toastId });
-        setIsLocating(false);
+        if (bestPosition) {
+          clearTimeout(timeoutId);
+          stopWatching();
+          setLintang(bestPosition.coords.latitude.toString());
+          setBujur(bestPosition.coords.longitude.toString());
+          setMapCenterKey(prev => prev + 1);
+          toast.success("Lokasi berhasil didapatkan.", { id: toastId });
+          setIsLocating(false);
+        } else {
+          clearTimeout(timeoutId);
+          stopWatching();
+          toast.error("Gagal mendapatkan lokasi. Pastikan GPS HP aktif dan Anda mengizinkan akses lokasi.", { id: toastId });
+          setIsLocating(false);
+        }
       },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   };
 
@@ -890,6 +945,10 @@ export default function PortalSpmb() {
                       disabled={isLocked}
                       value={lintang}
                       onChange={(e) => setLintang(e.target.value)}
+                      onBlur={() => {
+                        const parsed = parseFloat(lintang);
+                        if (!isNaN(parsed)) setMapCenterKey(prev => prev + 1);
+                      }}
                       placeholder="Contoh: -6.903423"
                       className="w-full h-12 px-4 rounded-xl text-sm text-white outline-none disabled:opacity-50"
                       style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.08)' }}
@@ -902,6 +961,10 @@ export default function PortalSpmb() {
                       disabled={isLocked}
                       value={bujur}
                       onChange={(e) => setBujur(e.target.value)}
+                      onBlur={() => {
+                        const parsed = parseFloat(bujur);
+                        if (!isNaN(parsed)) setMapCenterKey(prev => prev + 1);
+                      }}
                       placeholder="Contoh: 107.618790"
                       className="w-full h-12 px-4 rounded-xl text-sm text-white outline-none disabled:opacity-50"
                       style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.08)' }}
@@ -986,25 +1049,48 @@ export default function PortalSpmb() {
                   {/* Peta Interaktif */}
                   <div className="md:col-span-2 mt-4">
                     {isValidCoord && mapMountId > 0 ? (
-                      <div key={mapMountId} className="h-[400px] w-full rounded-2xl overflow-hidden border border-white/10 relative z-0" style={{ boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
-                        <MapContainer
-                          center={[latNum, lngNum]}
-                          zoom={14}
-                          scrollWheelZoom={false}
-                          className="h-full w-full"
-                          style={{ background: '#0e1520' }}
-                        >
-                          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                          
-                          {/* Marker Rumah */}
-                          {homeIcon && (
-                            <Marker position={[latNum, lngNum]} icon={homeIcon}>
-                              <Popup>
-                                <div className="font-bold">📍 Rumah {dataSiswa?.nama}</div>
-                                <div className="text-xs text-gray-500">Titik Awal Zonasi</div>
-                              </Popup>
-                            </Marker>
-                          )}
+                      <div className="space-y-2">
+                        {!isLocked && (
+                          <p className="text-[10px] text-cyan-400 font-bold bg-cyan-500/10 p-2.5 rounded-xl border border-cyan-500/20 flex items-center gap-1.5 animate-pulse">
+                            <MapPin size={12} className="shrink-0" />
+                            Tips: Geser (drag) ikon pin rumah berwarna biru pada peta untuk memposisikannya secara presisi.
+                          </p>
+                        )}
+                        <div className="h-[400px] w-full rounded-2xl overflow-hidden border border-white/10 relative z-0" style={{ boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
+                          <MapContainer
+                            key={`${mapMountId}-${mapCenterKey}`}
+                            center={[latNum, lngNum]}
+                            zoom={15}
+                            scrollWheelZoom={false}
+                            className="h-full w-full"
+                            style={{ background: '#0e1520' }}
+                          >
+                            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                            
+                            {/* Marker Rumah */}
+                            {homeIcon && (
+                              <Marker 
+                                position={[latNum, lngNum]} 
+                                icon={homeIcon}
+                                draggable={!isLocked}
+                                eventHandlers={{
+                                  dragend: (e: any) => {
+                                    const marker = e.target;
+                                    const position = marker.getLatLng();
+                                    setLintang(position.lat.toString());
+                                    setBujur(position.lng.toString());
+                                    toast.success("Titik koordinat diperbarui dari peta!");
+                                  }
+                                }}
+                              >
+                                <Popup>
+                                  <div className="font-bold">📍 Rumah {dataSiswa?.nama}</div>
+                                  <div className="text-xs text-gray-500">
+                                    {isLocked ? "Titik Awal Zonasi (Terkunci)" : "Geser pin ini ke lokasi rumah Anda yang tepat"}
+                                  </div>
+                                </Popup>
+                              </Marker>
+                            )}
                           
                           {/* Marker SMP 1 */}
                           {sekolah1 && smpIcon && (() => {
@@ -1049,7 +1135,8 @@ export default function PortalSpmb() {
                               </>
                             );
                           })()}
-                        </MapContainer>
+                          </MapContainer>
+                        </div>
                       </div>
                     ) : (
                       <div className="h-[200px] w-full rounded-2xl border border-dashed border-white/10 flex flex-col items-center justify-center text-white/30 bg-black/20">
