@@ -92,6 +92,8 @@ export default function PetaZonasiSpmb() {
   const [icons, setIcons] = useState<{ schoolIcon: any; studentIcon: any }>({ schoolIcon: null, studentIcon: null });
 
   const [customTarget, setCustomTarget] = useState({ name: "", lat: "", lng: "" });
+  const [namaVerifikator, setNamaVerifikator] = useState("");
+  const [nipVerifikator, setNipVerifikator] = useState("");
   const [mapKey, setMapKey] = useState(0);
   const [result, setResult] = useState<{
     siswa: Siswa;
@@ -296,8 +298,8 @@ export default function PetaZonasiSpmb() {
         <div class="footer-section">
           <div class="signature-box">
             <div class="sig-date">${config.kotaSekolah}, ${new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}<br>Petugas Verifikator,</div>
-            <div class="sig-name">${pengaturan?.nama_kepsek || "KEPALA SEKOLAH"}</div>
-            <div>NIP. ${pengaturan?.nip_kepsek || "-"}</div>
+            <div class="sig-name">${namaVerifikator || pengaturan?.nama_kepsek || "KEPALA SEKOLAH"}</div>
+            <div>${namaVerifikator ? (nipVerifikator ? `NIP. ${nipVerifikator}` : "") : (pengaturan?.nip_kepsek ? `NIP. ${pengaturan.nip_kepsek}` : "")}</div>
           </div>
         </div>
 
@@ -656,6 +658,34 @@ export default function PetaZonasiSpmb() {
                   </div>
                 </motion.div>
               )}
+
+              {/* 3. Petugas Verifikator */}
+              <div className="space-y-3 pt-2">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-5 h-5 rounded-full bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
+                    <span className="text-[10px] font-black text-indigo-400">3</span>
+                  </div>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    Petugas Verifikator (Opsional)
+                  </label>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <input
+                    type="text"
+                    placeholder="Nama Verifikator..."
+                    value={namaVerifikator}
+                    onChange={(e) => setNamaVerifikator(e.target.value)}
+                    className="w-full px-4 py-3 bg-white/[0.03] border border-white/5 hover:border-white/20 focus:border-indigo-500 rounded-xl font-bold text-slate-200 outline-none transition-all duration-300 text-xs"
+                  />
+                  <input
+                    type="text"
+                    placeholder="NIP Verifikator..."
+                    value={nipVerifikator}
+                    onChange={(e) => setNipVerifikator(e.target.value)}
+                    className="w-full px-4 py-3 bg-white/[0.03] border border-white/5 hover:border-white/20 focus:border-indigo-500 rounded-xl font-bold text-slate-200 outline-none transition-all duration-300 text-xs"
+                  />
+                </div>
+              </div>
 
               <div className="pt-4 space-y-3">
                 <button
