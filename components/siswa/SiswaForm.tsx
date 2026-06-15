@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useForm, Controller } from "react-hook-form";
@@ -194,6 +194,8 @@ const TABS = [
       "dusun",
       "kelurahan",
       "kecamatan",
+      "lintang",
+      "bujur",
       "jenis_tinggal",
       "alat_transportasi",
       "telepon",
@@ -600,20 +602,72 @@ function TabDomisili({
       <Field label="Alamat Lengkap" error={errors.alamat?.message}>
         <textarea className={`${inputCls} resize-none`} rows={3} {...register("alamat")} />
       </Field>
-      <div className="grid grid-cols-3 gap-4">
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Field label="RT" error={errors.rt?.message}>
           <input className={inputCls} {...register("rt")} />
         </Field>
         <Field label="RW" error={errors.rw?.message}>
           <input className={inputCls} {...register("rw")} />
         </Field>
+        <Field label="Dusun / Kampung" error={errors.dusun?.message}>
+          <input className={inputCls} {...register("dusun")} />
+        </Field>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Field label="Kelurahan / Desa" error={errors.kelurahan?.message}>
+          <input className={inputCls} {...register("kelurahan")} />
+        </Field>
+        <Field label="Kecamatan" error={errors.kecamatan?.message}>
+          <input className={inputCls} {...register("kecamatan")} />
+        </Field>
         <Field label="Kode Pos" error={errors.kode_pos?.message}>
           <input className={inputCls} {...register("kode_pos")} />
         </Field>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="No. WA" error={errors.no_wa?.message}>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border border-white/5 p-4 rounded-[20px] bg-white/[0.01]">
+        <div className="col-span-1 md:col-span-2 flex items-center gap-1.5 mb-1">
+          <Navigation className="w-3.5 h-3.5 text-violet-400" />
+          <span className="text-[10px] font-bold text-violet-400 tracking-wider uppercase">Koordinat Geotagging</span>
+        </div>
+        <Field label="Lintang (Latitude)" error={errors.lintang?.message}>
+          <input className={inputCls} placeholder="Contoh: -6.123456" {...register("lintang")} />
+        </Field>
+        <Field label="Bujur (Longitude)" error={errors.bujur?.message}>
+          <input className={inputCls} placeholder="Contoh: 106.123456" {...register("bujur")} />
+        </Field>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Field label="Jenis Tinggal" error={errors.jenis_tinggal?.message}>
+          <select className={selectCls} {...register("jenis_tinggal")}>
+            <option value="">-- Pilih --</option>
+            {KUMPULAN_JENIS_TINGGAL.map((v) => (
+              <option key={v} value={v}>{v}</option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Alat Transportasi" error={errors.alat_transportasi?.message}>
+          <select className={selectCls} {...register("alat_transportasi")}>
+            <option value="">-- Pilih --</option>
+            {KUMPULAN_TRANSPORTASI.map((v) => (
+              <option key={v} value={v}>{v}</option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Jarak ke Sekolah" error={errors.jarak_rumah?.message}>
+          <input className={inputCls} placeholder="Contoh: 1 km" {...register("jarak_rumah")} />
+        </Field>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Field label="No. WhatsApp" error={errors.no_wa?.message}>
           <input className={inputCls} {...register("no_wa")} />
+        </Field>
+        <Field label="Telepon" error={errors.telepon?.message}>
+          <input className={inputCls} {...register("telepon")} />
         </Field>
         <Field label="Email" error={errors.email?.message}>
           <input type="email" className={inputCls} {...register("email")} />
