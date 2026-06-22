@@ -107,7 +107,7 @@ export default function TandaTerimaDokumen() {
     printWindow.document.write(`
       <html>
       <head>
-        <title>Daftar Kendali - ${logKelas}</title>
+        <title>Daftar Kendali - ${Array.from(logKelas).join(', ')}</title>
         <style>
           @page { size: A4 portrait; margin: 15mm 10mm 15mm 15mm; }
           body { font-family: Arial, sans-serif; font-size: 11pt; padding: 0; margin: 0; color: #000; }
@@ -131,7 +131,7 @@ export default function TandaTerimaDokumen() {
         <button class="btn-print no-print" onclick="window.print()">🖨️ CETAK SEKARANG</button>
         <div class="kop-gambar"><img src="${KOP_BARU_URL}" /></div>
         <h2>${logJudul}</h2>
-        <div class="info-sub">KELAS: ${logKelas} | TAHUN PELAJARAN: ${logTP}</div>
+        <div class="info-sub">KELAS: ${Array.from(logKelas).join(', ')} | TAHUN PELAJARAN: ${logTP}</div>
         <table>
           <thead>
             <tr>
@@ -146,7 +146,7 @@ export default function TandaTerimaDokumen() {
         </table>
         <div class="footer">
           <div class="ttd">
-            ${school.kotaSekolah}, ........................ ${new Date().getFullYear()}<br>Wali Kelas ${logKelas},<br><br><br><br><br>
+            ${school.kotaSekolah}, ........................ ${new Date().getFullYear()}<br>Wali Kelas ${Array.from(logKelas).join(', ')},<br><br><br><br><br>
             <b><u>${logGuru}</u></b><br>NIP. ${logNIP}
           </div>
         </div>
