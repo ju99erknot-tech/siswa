@@ -114,6 +114,16 @@ export default function BulkTranskripPage() {
       return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
     } catch { return dateStr; }
   };
+
+  const getBulanIndoTitimangsa = (dateStr?: string | null) => {
+    if (!dateStr) return "22 Juni 2026";
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return dateStr;
+      const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+      return `22 ${months[date.getMonth()]} ${date.getFullYear()}`;
+    } catch { return "22 Juni 2026"; }
+  };
   
   const getAlamatKota = (alamat: string) => {
     const parts = alamat.split(",");
@@ -406,7 +416,7 @@ export default function BulkTranskripPage() {
 
             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "20px" }}>
               <div className="ttd-box" style={{ position: "relative" }}>
-                <p className="mb-1">{schoolKota}, {getBulanIndo(data.tanggal_kelulusan)}</p>
+                <p className="mb-1">{schoolKota}, {getBulanIndoTitimangsa(data.tanggal_kelulusan)}</p>
                 <p>Kepala,</p>
                 
                 {(showTtd || showStempel) ? (
