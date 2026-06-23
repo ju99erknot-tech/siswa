@@ -325,7 +325,7 @@ export default function BulkTranskripPage() {
               <tbody>
                 <tr>
                   <td className="border border-black py-0.5 px-3 text-center">1</td>
-                  <td className="border border-black py-0.5 px-4">Pendidikan Agama Islam dan Budi Pekerti</td>
+                  <td className="border border-black py-0.5 px-4">Pendidikan Agama dan Budi Pekerti</td>
                   <td className="border border-black py-0.5 px-3 text-center">{formatNilai(getNilai(siswa, "pai"))}</td>
                 </tr>
                 <tr>
@@ -345,18 +345,18 @@ export default function BulkTranskripPage() {
                 </tr>
                 <tr>
                   <td className="border border-black py-0.5 px-3 text-center">5</td>
-                  <td className="border border-black py-0.5 px-4">Ilmu Pengetahuan Alam dan Sosial</td>
+                  <td className="border border-black py-0.5 px-4">Ilmu Pengetahuan Alam dan Sosial (IPAS)</td>
                   <td className="border border-black py-0.5 px-3 text-center">{formatNilai(getNilai(siswa, "ipas"))}</td>
                 </tr>
                 <tr>
                   <td className="border border-black py-0.5 px-3 text-center">6</td>
-                  <td className="border border-black py-0.5 px-4">Pendidikan Jasmani Olahraga dan Kesehatan</td>
-                  <td className="border border-black py-0.5 px-3 text-center">{formatNilai(getNilai(siswa, "pjok"))}</td>
+                  <td className="border border-black py-0.5 px-4">Seni Budaya dan Prakarya</td>
+                  <td className="border border-black py-0.5 px-3 text-center">{formatNilai(getNilai(siswa, "sbdp"))}</td>
                 </tr>
                 <tr>
                   <td className="border border-black py-0.5 px-3 text-center">7</td>
-                  <td className="border border-black py-0.5 px-4">Seni Budaya: Seni Rupa</td>
-                  <td className="border border-black py-0.5 px-3 text-center">{formatNilai(getNilai(siswa, "sbdp"))}</td>
+                  <td className="border border-black py-0.5 px-4">Pendidikan Jasmani, Olahraga & Kesehatan</td>
+                  <td className="border border-black py-0.5 px-3 text-center">{formatNilai(getNilai(siswa, "pjok"))}</td>
                 </tr>
                 <tr>
                   <td className="border border-black py-0.5 px-3 text-center">8</td>
@@ -409,16 +409,20 @@ export default function BulkTranskripPage() {
                 <p className="mb-1">{schoolKota}, {getBulanIndo(data.tanggal_kelulusan)}</p>
                 <p>Kepala,</p>
                 
-                <div style={{ height: "100px", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "-5px", marginTop: "5px" }}>
-                  {showTtd && data.ttd_url && (
-                    <img src={data.ttd_url} style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", maxHeight: "100px", objectFit: "contain", zIndex: 1, mixBlendMode: "multiply" }} alt="TTD" />
-                  )}
-                  {showStempel && data.stempel_url && (
-                    <img src={data.stempel_url} style={{ position: "absolute", left: "50%", transform: "translateX(-110px)", maxHeight: "120px", objectFit: "contain", zIndex: 2, opacity: 0.9, mixBlendMode: "multiply" }} alt="Stempel" />
-                  )}
-                </div>
+                {(showTtd || showStempel) ? (
+                  <div style={{ height: "100px", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "-5px", marginTop: "5px" }}>
+                    {showTtd && data.ttd_url && (
+                      <img src={data.ttd_url} style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", maxHeight: "100px", objectFit: "contain", zIndex: 1, mixBlendMode: "multiply" }} alt="TTD" />
+                    )}
+                    {showStempel && data.stempel_url && (
+                      <img src={data.stempel_url} style={{ position: "absolute", left: "50%", transform: "translateX(-110px)", maxHeight: "120px", objectFit: "contain", zIndex: 2, opacity: 0.9, mixBlendMode: "multiply" }} alt="Stempel" />
+                    )}
+                  </div>
+                ) : (
+                  <div style={{ height: "50px" }} />
+                )}
 
-                <p className="ttd-name" style={{ marginTop: (showTtd || showStempel) ? "5px" : "60px" }}>{data.nama_kepsek}</p>
+                <p className="ttd-name" style={{ marginTop: (showTtd || showStempel) ? "5px" : "15px" }}>{data.nama_kepsek}</p>
                 <p>NIP. {data.nip_kepsek || "___________________"}</p>
               </div>
             </div>
