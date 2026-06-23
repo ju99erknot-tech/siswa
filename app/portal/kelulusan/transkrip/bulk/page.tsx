@@ -46,6 +46,18 @@ export default function BulkTranskripPage() {
   const [data, setData] = useState<BulkData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showTtd, setShowTtd] = useState(true);
+  const [showStempel, setShowStempel] = useState(true);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("ttd") === "false") {
+      setShowTtd(false);
+    }
+    if (params.get("stempel") === "false") {
+      setShowStempel(false);
+    }
+  }, []);
 
   useEffect(() => {
     fetch("/api/kelulusan/skl/bulk")
@@ -108,11 +120,18 @@ export default function BulkTranskripPage() {
     return parts[parts.length - 1]?.trim() || alamat;
   };
 
+  const schoolKota = (() => {
+    if (!data?.alamat_sekolah) return SCHOOL.kota;
+    const parts = data.alamat_sekolah.split(",");
+    const found = parts.find(p => p.toLowerCase().includes("kab.") || p.toLowerCase().includes("kota") || p.toLowerCase().includes("kec."));
+    return found?.trim() || SCHOOL.kota;
+  })();
+
   const getNilai = (s: SiswaData, key: string) => s.nilai_kelulusan?.[key] || "";
   const formatNilai = (val: string) => {
-    if (!val || val.trim() === "") return "";
+    if (!val || val.trim() === "") return "-";
     const num = parseFloat(val.replace(",", "."));
-    return isNaN(num) ? "" : Math.round(num).toString();
+    return isNaN(num) ? "-" : num.toFixed(2).replace(".", ",");
   };
 
   const getRataRata = (s: SiswaData) => {
@@ -125,41 +144,116 @@ export default function BulkTranskripPage() {
         if (!isNaN(num)) { sum += num; count++; }
       }
     });
-    if (count === 0) return "";
-    return Math.round(sum / count).toString();
+    if (count === 0) return "-";
+    const avg = sum / count;
+    return avg.toFixed(2).replace(".", ",");
   };
 
   return (
-    <div className="print-layout-container font-sans">
+    <div className="print-layout-container">
       <style dangerouslySetInnerHTML={{ __html: `
-        @page { size: A4 portrait; margin: 0; }
-        body { margin: 0; padding: 0; background: #eee; }
+        @page { size: A4 portrait; margin: 10mm 15mm; }
+        body { font-family: 'Times New Roman', serif; font-size: 12pt; margin: 0; padding: 20px; background: #eee; color: #000; }
         .print-layout-container { background: #eee; min-height: 100vh; padding: 20px; }
         .surat-page { 
           background: white; 
           width: 210mm; 
           min-height: 297mm; 
           margin: 0 auto 30px auto; 
-          padding: 15mm 20mm; 
+          padding: 10mm 15mm; 
           box-sizing: border-box; 
           box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
           color: #000; 
           page-break-after: always;
           position: relative;
+          font-family: 'Times New Roman', serif;
         }
         .surat-page:last-child { page-break-after: auto; margin-bottom: 0; }
+        .kop-surat {
+          text-align: center;
+          margin-bottom: 12px;
+          margin-left: -5mm;
+          margin-right: -5mm;
+        }
+        .kop-surat img {
+          width: 100%;
+          max-height: 120px;
+          object-fit: contain;
+        }
+        .judul-box {
+          text-align: center;
+          margin: 10px 0;
+        }
+        .judul-box h1 {
+          margin: 0;
+          font-size: 14pt;
+          text-decoration: underline;
+          font-weight: bold;
+          color: #000;
+          letter-spacing: 1px;
+        }
+        .judul-box p {
+          margin: 3px 0 0 0;
+          font-size: 11pt;
+          font-weight: bold;
+          color: #000;
+        }
+        .ttd-box {
+          width: 250px;
+          text-align: center;
+          font-size: 11pt;
+          color: #000;
+        }
+        .ttd-name {
+          font-weight: bold;
+          text-decoration: underline;
+          text-transform: uppercase;
+          color: #000;
+        }
+        .btn { background: #D4A843; color: white; padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         @media print {
-          body, .print-layout-container { background: white; padding: 0; }
-          .surat-page { box-shadow: none; margin: 0; }
+          html, html.dark, body, body.dark, .print-layout-container { 
+            background: white !important; 
+            background-color: white !important; 
+            color: #000 !important;
+            color-scheme: light !important;
+            padding: 0 !important; 
+            margin: 0 !important; 
+          } 
+          .surat-page { margin: 0 auto !important; box-shadow: none !important; padding: 5mm 10mm !important; min-height: auto !important; page-break-after: always; break-after: page; } 
           .no-print { display: none !important; }
         }
       `}} />
 
-      <div className="no-print fixed top-6 right-6 z-50">
-        <button onClick={() => window.print()}
-          className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white bg-indigo-500 hover:bg-indigo-600 transition-all shadow-lg shadow-indigo-500/20">
-          <Printer size={18} />
-          Cetak {data.siswaList.length} Transkrip
+      <div className="no-print" style={{ display: "flex", gap: "16px", alignItems: "center", background: "rgba(15, 23, 42, 0.9)", padding: "16px 24px", borderRadius: "20px", marginBottom: "25px", border: "1px solid rgba(255, 255, 255, 0.08)", backdropFilter: "blur(12px)" }}>
+        <button className="btn" onClick={() => window.print()} style={{ background: "linear-gradient(135deg, #D4A843, #b8860b)" }}>
+          🖨️ Cetak Semua ({data.siswaList.length} Siswa)
+        </button>
+        
+        <div style={{ display: "flex", gap: "20px", marginLeft: "20px" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", color: "rgba(255, 255, 255, 0.8)", fontSize: "12px", fontWeight: "bold", userSelect: "none" }}>
+            <input 
+              type="checkbox" 
+              checked={showTtd} 
+              onChange={(e) => setShowTtd(e.target.checked)} 
+              style={{ cursor: "pointer", width: "16px", height: "16px", accentColor: "#D4A843" }} 
+            />
+            Tampilkan Tanda Tangan
+          </label>
+
+          <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", color: "rgba(255, 255, 255, 0.8)", fontSize: "12px", fontWeight: "bold", userSelect: "none" }}>
+            <input 
+              type="checkbox" 
+              checked={showStempel} 
+              onChange={(e) => setShowStempel(e.target.checked)} 
+              style={{ cursor: "pointer", width: "16px", height: "16px", accentColor: "#D4A843" }} 
+            />
+            Tampilkan Stempel
+          </label>
+        </div>
+
+        <button className="btn" style={{ background: "rgba(255, 255, 255, 0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)", marginLeft: "auto" }} onClick={() => window.close()}>
+          Tutup
         </button>
       </div>
 
@@ -169,58 +263,50 @@ export default function BulkTranskripPage() {
 
         return (
           <div key={siswa.id} className="surat-page">
-            {/* KOP SURAT */}
-            {data.kop_surat_url ? (
-              <img src={data.kop_surat_url} alt="KOP Surat" className="w-full object-contain mb-1 border-b-[3px] border-black pb-1" />
-            ) : (
-              <div className="text-center font-bold text-2xl mb-1 border-b-[3px] border-black pb-4 pt-4 uppercase">
-                {data.nama_sekolah}
-              </div>
-            )}
-            <div className="border-b-[1px] border-black mb-6 mt-[2px]"></div>
-
-            {/* JUDUL */}
-            <div className="text-center mb-6">
-              <h1 className="font-bold text-lg underline tracking-wide">TRANSKIP NILAI</h1>
-              <p className="text-base mt-1">Nomor: {nomorTranskrip}</p>
+            <div className="kop-surat">
+              <img src={data.kop_surat_url || '/KOP_Baru.png'} alt="KOP" />
             </div>
 
-            {/* DATA SISWA */}
-            <div className="mb-6 ml-2">
+            <div className="judul-box">
+              <h1>TRANSKRIP NILAI</h1>
+              <p>Nomor: {nomorTranskrip}</p>
+            </div>
+
+            <div className="mb-3 ml-2">
               <table className="w-full text-base">
                 <tbody>
                   <tr>
-                    <td className="w-[30%] py-0.5">Satuan Pendidikan</td>
+                    <td className="py-0.5 whitespace-nowrap pr-4 w-[38%]">Satuan Pendidikan</td>
                     <td className="w-[2%]">:</td>
-                    <td className="w-[68%]">{data.nama_sekolah}</td>
+                    <td className="w-[60%]">{data.nama_sekolah}</td>
                   </tr>
                   <tr>
-                    <td className="py-0.5">Nomor Pokok Sekolah Nasional</td>
+                    <td className="py-0.5 whitespace-nowrap pr-4">Nomor Pokok Sekolah Nasional</td>
                     <td>:</td>
                     <td>{data.npsn}</td>
                   </tr>
                   <tr>
-                    <td className="py-0.5">Nama Lengkap</td>
+                    <td className="py-0.5 whitespace-nowrap pr-4">Nama Lengkap</td>
                     <td>:</td>
                     <td>{siswa.nama}</td>
                   </tr>
                   <tr>
-                    <td className="py-0.5">Tempat, Tanggal Lahir</td>
+                    <td className="py-0.5 whitespace-nowrap pr-4">Tempat, Tanggal Lahir</td>
                     <td>:</td>
                     <td>{siswa.tempat_lahir}, {getBulanIndo(siswa.tanggal_lahir)}</td>
                   </tr>
                   <tr>
-                    <td className="py-0.5">Nomor Induk Siswa Nasional</td>
+                    <td className="py-0.5 whitespace-nowrap pr-4">Nomor Induk Siswa Nasional</td>
                     <td>:</td>
                     <td>{siswa.nisn}</td>
                   </tr>
                   <tr>
-                    <td className="py-0.5">Nomor Ijazah</td>
+                    <td className="py-0.5 whitespace-nowrap pr-4">Nomor Ijazah</td>
                     <td>:</td>
                     <td>{nomorIjazah}</td>
                   </tr>
                   <tr>
-                    <td className="py-0.5">Tanggal Kelulusan</td>
+                    <td className="py-0.5 whitespace-nowrap pr-4">Tanggal Kelulusan</td>
                     <td>:</td>
                     <td>{getBulanIndo(data.tanggal_kelulusan)}</td>
                   </tr>
@@ -228,117 +314,114 @@ export default function BulkTranskripPage() {
               </table>
             </div>
 
-            {/* TABEL NILAI */}
-            <table className="w-full border-collapse border border-black mb-10 text-base">
+            <table className="w-full border-collapse border border-black mb-4 text-base">
               <thead>
                 <tr>
-                  <th className="border border-black py-2 px-3 w-[8%]">No</th>
-                  <th className="border border-black py-2 px-4 w-[77%]">Mata Pelajaran</th>
-                  <th className="border border-black py-2 px-3 w-[15%]">Nilai</th>
+                  <th className="border border-black py-1.5 px-3 w-[8%]">No</th>
+                  <th className="border border-black py-1.5 px-4 w-[77%]">Mata Pelajaran</th>
+                  <th className="border border-black py-1.5 px-3 w-[15%]">Nilai</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td className="border border-black py-1 px-3 text-center">1</td>
-                  <td className="border border-black py-1 px-4">Pendidikan Agama Islam dan Budi Pekerti</td>
-                  <td className="border border-black py-1 px-3 text-center">{formatNilai(getNilai(siswa, "pai"))}</td>
+                  <td className="border border-black py-0.5 px-3 text-center">1</td>
+                  <td className="border border-black py-0.5 px-4">Pendidikan Agama Islam dan Budi Pekerti</td>
+                  <td className="border border-black py-0.5 px-3 text-center">{formatNilai(getNilai(siswa, "pai"))}</td>
                 </tr>
                 <tr>
-                  <td className="border border-black py-1 px-3 text-center">2</td>
-                  <td className="border border-black py-1 px-4">Pendidikan Pancasila</td>
-                  <td className="border border-black py-1 px-3 text-center">{formatNilai(getNilai(siswa, "ppkn"))}</td>
+                  <td className="border border-black py-0.5 px-3 text-center">2</td>
+                  <td className="border border-black py-0.5 px-4">Pendidikan Pancasila</td>
+                  <td className="border border-black py-0.5 px-3 text-center">{formatNilai(getNilai(siswa, "ppkn"))}</td>
                 </tr>
                 <tr>
-                  <td className="border border-black py-1 px-3 text-center">3</td>
-                  <td className="border border-black py-1 px-4">Bahasa Indonesia</td>
-                  <td className="border border-black py-1 px-3 text-center">{formatNilai(getNilai(siswa, "indo"))}</td>
+                  <td className="border border-black py-0.5 px-3 text-center">3</td>
+                  <td className="border border-black py-0.5 px-4">Bahasa Indonesia</td>
+                  <td className="border border-black py-0.5 px-3 text-center">{formatNilai(getNilai(siswa, "indo"))}</td>
                 </tr>
                 <tr>
-                  <td className="border border-black py-1 px-3 text-center">4</td>
-                  <td className="border border-black py-1 px-4">Matematika</td>
-                  <td className="border border-black py-1 px-3 text-center">{formatNilai(getNilai(siswa, "mtk"))}</td>
+                  <td className="border border-black py-0.5 px-3 text-center">4</td>
+                  <td className="border border-black py-0.5 px-4">Matematika</td>
+                  <td className="border border-black py-0.5 px-3 text-center">{formatNilai(getNilai(siswa, "mtk"))}</td>
                 </tr>
                 <tr>
-                  <td className="border border-black py-1 px-3 text-center">5</td>
-                  <td className="border border-black py-1 px-4">Ilmu Pengetahuan Alam dan Sosial</td>
-                  <td className="border border-black py-1 px-3 text-center">{formatNilai(getNilai(siswa, "ipas"))}</td>
+                  <td className="border border-black py-0.5 px-3 text-center">5</td>
+                  <td className="border border-black py-0.5 px-4">Ilmu Pengetahuan Alam dan Sosial</td>
+                  <td className="border border-black py-0.5 px-3 text-center">{formatNilai(getNilai(siswa, "ipas"))}</td>
                 </tr>
                 <tr>
-                  <td className="border border-black py-1 px-3 text-center">6</td>
-                  <td className="border border-black py-1 px-4">Pendidikan Jasmani Olahraga dan Kesehatan</td>
-                  <td className="border border-black py-1 px-3 text-center">{formatNilai(getNilai(siswa, "pjok"))}</td>
+                  <td className="border border-black py-0.5 px-3 text-center">6</td>
+                  <td className="border border-black py-0.5 px-4">Pendidikan Jasmani Olahraga dan Kesehatan</td>
+                  <td className="border border-black py-0.5 px-3 text-center">{formatNilai(getNilai(siswa, "pjok"))}</td>
                 </tr>
                 <tr>
-                  <td className="border border-black py-1 px-3 text-center">7</td>
-                  <td className="border border-black py-1 px-4">Seni Budaya: Seni Rupa</td>
-                  <td className="border border-black py-1 px-3 text-center">{formatNilai(getNilai(siswa, "sbdp"))}</td>
+                  <td className="border border-black py-0.5 px-3 text-center">7</td>
+                  <td className="border border-black py-0.5 px-4">Seni Budaya: Seni Rupa</td>
+                  <td className="border border-black py-0.5 px-3 text-center">{formatNilai(getNilai(siswa, "sbdp"))}</td>
                 </tr>
                 <tr>
-                  <td className="border border-black py-1 px-3 text-center">8</td>
-                  <td className="border border-black py-1 px-4">Bahasa Inggris</td>
-                  <td className="border border-black py-1 px-3 text-center">{formatNilai(getNilai(siswa, "bing"))}</td>
+                  <td className="border border-black py-0.5 px-3 text-center">8</td>
+                  <td className="border border-black py-0.5 px-4">Bahasa Inggris</td>
+                  <td className="border border-black py-0.5 px-3 text-center">{formatNilai(getNilai(siswa, "bing"))}</td>
                 </tr>
                 <tr>
-                  <td className="border-r border-black py-1 px-3 text-center">9</td>
-                  <td className="border-r border-black py-1 px-4 font-bold">Muatan Lokal:</td>
-                  <td className="border-l border-black py-1 px-3"></td>
+                  <td className="border-r border-black py-0.5 px-3 text-center">9</td>
+                  <td className="border-r border-black py-0.5 px-4 font-bold">Muatan Lokal:</td>
+                  <td className="border-l border-black py-0.5 px-3"></td>
                 </tr>
                 <tr>
-                  <td className="border-r border-black py-1 px-3"></td>
-                  <td className="border-r border-black py-1 pl-8">{data.nama_mulok1}</td>
-                  <td className="border-l border-black py-1 px-3 text-center">{formatNilai(getNilai(siswa, "mulok1"))}</td>
+                  <td className="border-r border-black py-0.5 px-3"></td>
+                  <td className="border-r border-black py-0.5 pl-8">{data.nama_mulok1}</td>
+                  <td className="border-l border-black py-0.5 px-3 text-center">{formatNilai(getNilai(siswa, "mulok1"))}</td>
                 </tr>
                 {data.nama_mulok2 && (
                   <tr>
-                    <td className="border-r border-black py-1 px-3"></td>
-                    <td className="border-r border-black py-1 pl-8">{data.nama_mulok2}</td>
-                    <td className="border-l border-black py-1 px-3 text-center">{formatNilai(getNilai(siswa, "mulok2"))}</td>
+                    <td className="border-r border-black py-0.5 px-3"></td>
+                    <td className="border-r border-black py-0.5 pl-8">{data.nama_mulok2}</td>
+                    <td className="border-l border-black py-0.5 px-3 text-center">{formatNilai(getNilai(siswa, "mulok2"))}</td>
                   </tr>
                 )}
                 {data.nama_mulok3 && (
                   <tr>
-                    <td className="border-r border-black py-1 px-3"></td>
-                    <td className="border-r border-black py-1 pl-8">{data.nama_mulok3}</td>
-                    <td className="border-l border-black py-1 px-3 text-center">{formatNilai(getNilai(siswa, "mulok3"))}</td>
+                    <td className="border-r border-black py-0.5 px-3"></td>
+                    <td className="border-r border-black py-0.5 pl-8">{data.nama_mulok3}</td>
+                    <td className="border-l border-black py-0.5 px-3 text-center">{formatNilai(getNilai(siswa, "mulok3"))}</td>
                   </tr>
                 )}
                 <tr>
-                  <td className="border-r border-black py-1 px-3"></td>
-                  <td className="border-r border-black py-1 pl-8"></td>
-                  <td className="border-l border-black py-1 px-3 text-center"></td>
+                  <td className="border-r border-black py-0.5 px-3"></td>
+                  <td className="border-r border-black py-0.5 pl-8"></td>
+                  <td className="border-l border-black py-0.5 px-3 text-center"></td>
                 </tr>
                 <tr>
-                  <td className="border-r border-b border-black py-1 px-3"></td>
-                  <td className="border-r border-b border-black py-1 pl-8"></td>
-                  <td className="border-b border-l border-black py-1 px-3 text-center"></td>
+                  <td className="border-r border-b border-black py-0.5 px-3"></td>
+                  <td className="border-r border-b border-black py-0.5 pl-8"></td>
+                  <td className="border-b border-l border-black py-0.5 px-3 text-center"></td>
                 </tr>
                 <tr>
-                  <td colSpan={2} className="border border-black py-2 px-4 text-center font-bold">Rata - Rata</td>
-                  <td className="border border-black py-2 px-3 text-center font-bold">{getRataRata(siswa)}</td>
+                  <td colSpan={2} className="border border-black py-1 px-4 text-center font-bold">Rata - Rata</td>
+                  <td className="border border-black py-1 px-3 text-center font-bold">{getRataRata(siswa)}</td>
                 </tr>
               </tbody>
             </table>
 
-            {/* FOOTER & TTD */}
-            <div className="flex justify-end text-base mr-8">
-              <div className="text-left w-[250px]">
-                <p className="mb-1">{getAlamatKota(data.alamat_sekolah)}, {getBulanIndo(data.tanggal_kelulusan)}</p>
+            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "20px" }}>
+              <div className="ttd-box" style={{ position: "relative" }}>
+                <p className="mb-1">{schoolKota}, {getBulanIndo(data.tanggal_kelulusan)}</p>
                 <p>Kepala,</p>
                 
-                <div className="h-24 relative my-2">
-                  {data.ttd_url && (
-                    <img src={data.ttd_url} alt="TTD" className="absolute top-1/2 left-0 -translate-y-1/2 h-full object-contain z-10" />
+                <div style={{ height: "100px", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "-5px", marginTop: "5px" }}>
+                  {showTtd && data.ttd_url && (
+                    <img src={data.ttd_url} style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", maxHeight: "100px", objectFit: "contain", zIndex: 1, mixBlendMode: "multiply" }} alt="TTD" />
                   )}
-                  {data.stempel_url && (
-                    <img src={data.stempel_url} alt="Stempel" className="absolute top-1/2 left-0 -translate-y-1/2 h-[120%] -translate-x-6 object-contain z-0 mix-blend-multiply opacity-80" />
+                  {showStempel && data.stempel_url && (
+                    <img src={data.stempel_url} style={{ position: "absolute", left: "50%", transform: "translateX(-110px)", maxHeight: "120px", objectFit: "contain", zIndex: 2, opacity: 0.9, mixBlendMode: "multiply" }} alt="Stempel" />
                   )}
                 </div>
 
-                <p className="font-bold underline">{data.nama_kepsek}</p>
-                <p>NIP. {data.nip_kepsek || ".........................................."}</p>
+                <p className="ttd-name" style={{ marginTop: (showTtd || showStempel) ? "5px" : "60px" }}>{data.nama_kepsek}</p>
+                <p>NIP. {data.nip_kepsek || "___________________"}</p>
               </div>
             </div>
-
           </div>
         );
       })}
