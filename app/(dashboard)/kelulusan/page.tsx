@@ -94,12 +94,13 @@ export default function KelulusanPage() {
   const [skLulusTentang, setSkLulusTentang] = useState("Kriteria Kelulusan Peserta Didik Tahun Pelajaran 2025/2026");
   const [formatSkl, setFormatSkl] = useState("format_1");
 
-  // Modal Input Nilai & Nomor SKL
+  // Modal Input Nilai & Nomor SKL/Transkrip
   const [modalSiswa, setModalSiswa] = useState<SiswaKelulusan | null>(null);
   const [modalNomorSkl, setModalNomorSkl] = useState("");
   const [modalNilai, setModalNilai] = useState<Record<string, string>>({
-    pai: "", ppkn: "", indo: "", mtk: "", ipa: "", ips: "",
-    sbdp: "", pjok: "", mulok1: "", mulok2: "", mulok3: ""
+    pai: "", ppkn: "", indo: "", mtk: "", ipa: "", ips: "", ipas: "",
+    sbdp: "", pjok: "", bing: "", mulok1: "", mulok2: "", mulok3: "",
+    nomor_transkrip: "", nomor_ijazah: ""
   });
 
   // Modal Cetak Satuan (TTD & Stempel toggle)
@@ -123,8 +124,13 @@ export default function KelulusanPage() {
     setPrintModalSiswa(null);
   };
 
-  // Modal Bulk Generate Nomor SKL
+  const handleCetakTranskrip = (nisn: string) => {
+    window.open(`/portal/kelulusan/transkrip/${nisn}?print=true`, "_blank");
+  };
+
+  // Modal Bulk Generate Nomor SKL & Transkrip
   const [showBulkNumberModal, setShowBulkNumberModal] = useState(false);
+  const [bulkNumberType, setBulkNumberType] = useState<"skl" | "transkrip">("skl");
   const [bulkTemplate, setBulkTemplate] = useState("400.3.11/{seq}/........./2026");
   const [bulkStartNum, setBulkStartNum] = useState(1);
   const [bulkPadding, setBulkPadding] = useState(3);
@@ -300,23 +306,17 @@ export default function KelulusanPage() {
 
 
 
-  // Membuka modal input nilai & nomor SKL
-  const openNilaiModal = (siswa: SiswaKelulusan) => {
-    setModalSiswa(siswa);
-    setModalNomorSkl(siswa.nomor_skl || "");
-    const n = (siswa.nilai_kelulusan || {}) as Record<string, string>;
+  // Membuka modal input nilai & nomor
+  const openNilaiModal = (s: SiswaKelulusan) => {
+    setModalSiswa(s);
+    setModalNomorSkl(s.nomor_skl || "");
+    const n = (s.nilai_kelulusan || {}) as Record<string, string>;
     setModalNilai({
-      pai: n.pai || "",
-      ppkn: n.ppkn || "",
-      indo: n.indo || "",
-      mtk: n.mtk || "",
-      ipas: n.ipas || "",
-      sbdp: n.sbdp || "",
-      pjok: n.pjok || "",
-      bing: n.bing || "",
-      mulok1: n.mulok1 || "",
-      mulok2: n.mulok2 || "",
-      mulok3: n.mulok3 || ""
+      pai: n.pai || "", ppkn: n.ppkn || "", indo: n.indo || "", mtk: n.mtk || "",
+      ipa: n.ipa || "", ips: n.ips || "", ipas: n.ipas || "",
+      sbdp: n.sbdp || "", pjok: n.pjok || "", bing: n.bing || "",
+      mulok1: n.mulok1 || "", mulok2: n.mulok2 || "", mulok3: n.mulok3 || "",
+      nomor_transkrip: n.nomor_transkrip || "", nomor_ijazah: n.nomor_ijazah || ""
     });
   };
 
@@ -342,39 +342,31 @@ export default function KelulusanPage() {
   const handleSaveNilai = async () => {
     if (!modalSiswa) return;
     setSaving(true);
-    const formattedNilai: Record<string, string> = {};
-    Object.entries(modalNilai).forEach(([key, val]) => {
-      if (val.trim() !== "") {
-        const num = parseFloat(val.replace(",", "."));
-        if (!isNaN(num)) {
-          formattedNilai[key] = num.toFixed(2);
-        } else {
-          formattedNilai[key] = "";
-        }
-      } else {
-        formattedNilai[key] = "";
-      }
-    });
+    try {
+      let filteredNilai: Record<string, string> = {};
+      Object.entries(modalNilai).forEach(([k, v]) => {
+        if (v && v.trim() !== "") filteredNilai[k] = v;
+      });
 
-    const { error } = await supabase
-      .from("siswa")
-      .update({
-        nomor_skl: modalNomorSkl || null,
-        nilai_kelulusan: formattedNilai
-      })
-      .eq("id", modalSiswa.id);
+      const { error } = await supabase.from("siswa")
+        .update({
+          nomor_skl: modalNomorSkl || null,
+          nilai_kelulusan: Object.keys(filteredNilai).length > 0 ? filteredNilai : null
+        })
+        .eq("id", modalSiswa.id);
 
     if (error) {
       toast.error("Gagal menyimpan nilai: " + error.message);
     } else {
-      setSiswaList(prev => prev.map(s => s.id === modalSiswa.id ? { ...s, nomor_skl: modalNomorSkl || null, nilai_kelulusan: formattedNilai } : s));
-      toast.success(`Nilai & Nomor SKL untuk ${modalSiswa.nama} berhasil disimpan!`);
+      setSiswaList(prev => prev.map(s => s.id === modalSiswa.id ? { ...s, nomor_skl: modalNomorSkl || null, nilai_kelulusan: filteredNilai } : s));
+      toast.success(`Nilai & Nomor untuk ${modalSiswa.nama} berhasil disimpan!`);
       setModalSiswa(null);
     }
+    } catch (err) { toast.error("Error saving data"); }
     setSaving(false);
   };
 
-  // Bulk Generate Nomor SKL Berurutan
+  // Bulk Generate Nomor SKL / Transkrip Berurutan
   const handleBulkGenerateNumbers = async () => {
     setSaving(true);
     try {
@@ -391,34 +383,39 @@ export default function KelulusanPage() {
         return a.nisn.localeCompare(b.nisn);
       });
 
-      // Update in Supabase and state
-      const updates = sorted.map((s, index) => {
+      const promises = sorted.map((s, index) => {
         const seqVal = bulkStartNum + index;
         const seqStr = String(seqVal).padStart(bulkPadding, "0");
         const formattedNum = bulkTemplate.replace("{seq}", seqStr);
-        return {
-          id: s.id,
-          nomor_skl: formattedNum
-        };
+        const oldNilai = (s.nilai_kelulusan || {}) as Record<string, string>;
+        
+        if (bulkNumberType === "skl") {
+          return supabase.from("siswa").update({ nomor_skl: formattedNum }).eq("id", s.id);
+        } else {
+          return supabase.from("siswa").update({ 
+            nilai_kelulusan: { ...oldNilai, nomor_transkrip: formattedNum } 
+          }).eq("id", s.id);
+        }
       });
 
-      const promises = updates.map(u => 
-        supabase.from("siswa").update({ nomor_skl: u.nomor_skl }).eq("id", u.id)
-      );
-
-      const results = await Promise.all(promises);
-      const errors = results.filter(r => r.error);
-      if (errors.length > 0) {
-        throw new Error("Beberapa data gagal diupdate");
-      }
+      await Promise.all(promises);
 
       // Update local state
       setSiswaList(prev => prev.map(s => {
-        const match = updates.find(u => u.id === s.id);
-        return match ? { ...s, nomor_skl: match.nomor_skl } : s;
+        const index = sorted.findIndex(u => u.id === s.id);
+        if (index === -1) return s;
+        const seqVal = bulkStartNum + index;
+        const seqStr = String(seqVal).padStart(bulkPadding, "0");
+        const formattedNum = bulkTemplate.replace("{seq}", seqStr);
+        
+        if (bulkNumberType === "skl") {
+          return { ...s, nomor_skl: formattedNum };
+        } else {
+          return { ...s, nilai_kelulusan: { ...(s.nilai_kelulusan as any), nomor_transkrip: formattedNum } };
+        }
       }));
 
-      toast.success(`Berhasil membuat nomor SKL berurutan untuk ${updates.length} siswa!`);
+      toast.success(`Berhasil membuat nomor ${bulkNumberType.toUpperCase()} untuk ${sorted.length} siswa!`);
       setShowBulkNumberModal(false);
     } catch (err: any) {
       toast.error("Gagal generate nomor: " + err.message);
@@ -625,9 +622,17 @@ export default function KelulusanPage() {
                 className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-sky-400 bg-sky-500/10 border border-sky-500/20 hover:bg-sky-500/20 transition-all disabled:opacity-40">
                 <Printer size={12} /> Cetak Semua SKL
               </button>
-              <button onClick={() => setShowBulkNumberModal(true)} disabled={saving || stats.lulus === 0}
+              <button onClick={() => window.open("/portal/kelulusan/transkrip/bulk", "_blank")} disabled={saving || stats.lulus === 0}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 hover:bg-indigo-500/20 transition-all disabled:opacity-40">
+                <Printer size={12} /> Cetak Semua Transkrip
+              </button>
+              <button onClick={() => { setBulkNumberType("skl"); setShowBulkNumberModal(true); }} disabled={saving || stats.lulus === 0}
                 className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 transition-all disabled:opacity-40">
-                <Calculator size={12} /> Generate Nomor SKL
+                <Calculator size={12} /> Gen No SKL
+              </button>
+              <button onClick={() => { setBulkNumberType("transkrip"); setShowBulkNumberModal(true); }} disabled={saving || stats.lulus === 0}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-orange-400 bg-orange-500/10 border border-orange-500/20 hover:bg-orange-500/20 transition-all disabled:opacity-40">
+                <Calculator size={12} /> Gen No Transkrip
               </button>
               <button onClick={bulkSetLulus} disabled={saving || stats.belum === 0}
                 className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all disabled:opacity-40">
@@ -742,6 +747,14 @@ export default function KelulusanPage() {
                     </td>
                     <td className="text-center px-4 py-3">
                       <div className="flex items-center justify-center gap-1.5">
+                        <button onClick={() => openPrintModal(s)} title="Cetak SKL" disabled={s.status_kelulusan !== "LULUS"}
+                          className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 text-sky-400/70 border border-white/5 hover:text-sky-400 hover:bg-sky-500/10 transition-all disabled:opacity-30 disabled:cursor-not-allowed">
+                          <Printer size={14} />
+                        </button>
+                        <button onClick={() => handleCetakTranskrip(s.nisn)} title="Cetak Transkrip" disabled={s.status_kelulusan !== "LULUS"}
+                          className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 text-indigo-400/70 border border-white/5 hover:text-indigo-400 hover:bg-indigo-500/10 transition-all disabled:opacity-30 disabled:cursor-not-allowed">
+                          <Printer size={14} />
+                        </button>
                         <button onClick={() => openNilaiModal(s)} title="Input Nilai & Nomor SKL"
                           className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 text-white/40 border border-white/5 hover:text-amber-400 hover:bg-amber-500/10 transition-all">
                           <Edit3 size={14} />
@@ -809,13 +822,32 @@ export default function KelulusanPage() {
 
             {/* Body */}
             <div className="p-6 max-h-[70vh] overflow-y-auto space-y-5">
-              {/* Nomor SKL */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest pl-1">Nomor Surat Keterangan Kelulusan (SKL)</label>
-                <input type="text" value={modalNomorSkl} onChange={e => setModalNomorSkl(e.target.value)}
-                  placeholder="Contoh: 400.3.11/001/........./2026"
-                  className="w-full h-11 px-4 rounded-xl text-sm text-white outline-none focus:ring-2 focus:ring-amber-500/20"
-                  style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.08)" }} />
+              {/* Nomor SKL, Transkrip, Ijazah */}
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest pl-1">Nomor Surat Keterangan Lulus (SKL)</label>
+                  <input type="text" value={modalNomorSkl} onChange={e => setModalNomorSkl(e.target.value)}
+                    placeholder="Contoh: 400.3.11/001/........./2026"
+                    className="w-full h-11 px-4 rounded-xl text-sm text-white outline-none focus:ring-2 focus:ring-amber-500/20"
+                    style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.08)" }} />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest pl-1">Nomor Transkrip Nilai</label>
+                    <input type="text" value={modalNilai.nomor_transkrip || ""} onChange={e => setModalNilai(prev => ({ ...prev, nomor_transkrip: e.target.value }))}
+                      placeholder="Nomor Transkrip"
+                      className="w-full h-11 px-4 rounded-xl text-sm text-white outline-none focus:ring-2 focus:ring-amber-500/20"
+                      style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.08)" }} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest pl-1">Nomor Ijazah</label>
+                    <input type="text" value={modalNilai.nomor_ijazah || ""} onChange={e => setModalNilai(prev => ({ ...prev, nomor_ijazah: e.target.value }))}
+                      placeholder="DN-02/D-SD/0000001"
+                      className="w-full h-11 px-4 rounded-xl text-sm text-white outline-none focus:ring-2 focus:ring-amber-500/20"
+                      style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.08)" }} />
+                  </div>
+                </div>
               </div>
 
               {/* Nilai Mata Pelajaran */}
