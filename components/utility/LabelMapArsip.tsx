@@ -78,22 +78,22 @@ export default function LabelMapArsip() {
                     <td class="info-value">${ttl}</td>
                   </tr>
                   <tr>
-                    <td class="info-label">no ijazah</td>
+                    <td class="info-label">Nomor Ijazah</td>
                     <td class="info-colon">:</td>
                     <td class="info-value">${nomorIjazah}</td>
                   </tr>
                   <tr>
-                    <td class="info-label">N I S N</td>
+                    <td class="info-label">N.I.S.N</td>
                     <td class="info-colon">:</td>
                     <td class="info-value">${s.nisn || "-"}</td>
                   </tr>
                   <tr>
-                    <td class="info-label">jenis kelamin</td>
+                    <td class="info-label">Jenis Kelamin</td>
                     <td class="info-colon">:</td>
-                    <td class="info-value">${jenisKelamin}</td>
+                    <td class="info-value">${s.jk || "-"}</td>
                   </tr>
                   <tr>
-                    <td class="info-label">nama sekolah</td>
+                    <td class="info-label">Asal Sekolah</td>
                     <td class="info-colon">:</td>
                     <td class="info-value">SD Negeri 02 Cibadak</td>
                   </tr>
@@ -101,7 +101,6 @@ export default function LabelMapArsip() {
               </div>
               
               <div class="footer-section">
-                <div class="footer-line"></div>
                 <div class="footer-text address">${alamatFooter}</div>
                 <div class="footer-text contact">${teleponFooter}</div>
                 <div class="footer-text web-mail">
@@ -196,15 +195,13 @@ export default function LabelMapArsip() {
           .document-title {
             font-size: 26pt;
             font-weight: bold;
-            letter-spacing: 4px;
+            letter-spacing: 6px;
             text-decoration: none;
             display: inline-block;
-            border-bottom: 3px double #000;
-            padding-bottom: 2px;
           }
           .info-section {
-            width: 85%;
-            margin-bottom: 15mm;
+            width: 80%;
+            margin: 10mm auto 15mm auto;
             flex-grow: 1;
             display: flex;
             align-items: center;
@@ -216,19 +213,19 @@ export default function LabelMapArsip() {
             font-size: 14pt;
           }
           .info-table td {
-            padding: 10px 4px;
+            padding: 8px 4px;
             vertical-align: top;
           }
           .info-label {
-            width: 45%;
+            width: 38%;
             text-align: left;
           }
           .info-colon {
-            width: 3%;
+            width: 4%;
             text-align: center;
           }
           .info-value {
-            width: 52%;
+            width: 58%;
             text-align: left;
           }
           .font-bold {
@@ -238,12 +235,7 @@ export default function LabelMapArsip() {
             width: 100%;
             text-align: center;
             font-size: 11pt;
-            line-height: 1.4;
-          }
-          .footer-line {
-            width: 100%;
-            border-top: 1px solid #000;
-            margin-bottom: 8px;
+            line-height: 1.5;
           }
           .footer-text {
             margin-bottom: 2px;
