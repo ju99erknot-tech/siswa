@@ -48,13 +48,17 @@ export default function LabelMapArsip() {
         if (layoutMode === "ijazah") {
           return `
             <div class="page-container">
-              <div class="header-section">
-                <div class="gov-text">PEMERINTAH KABUPATEN SUKABUMI</div>
-                <div class="school-text">SD NEGERI 02 CIBADAK</div>
+              <div class="kop-container">
+                <img class="kop-logo" src="https://upload.wikimedia.org/wikipedia/commons/f/fb/Lambang_Kab_Sukabumi.svg" alt="Logo Kabupaten" />
+                <div class="kop-text">
+                  <div class="gov-text">PEMERINTAH KABUPATEN SUKABUMI</div>
+                  <div class="school-text">SD NEGERI 02 CIBADAK</div>
+                </div>
               </div>
+              <div class="kop-line"></div>
               
               <div class="logo-section">
-                <img class="logo-img" src="https://upload.wikimedia.org/wikipedia/commons/b/b2/Logo_Kabupaten_Sukabumi.png" alt="Logo Kabupaten Sukabumi" />
+                <img class="logo-img" src="${config.logoUrl}" alt="Logo Sekolah" />
               </div>
               
               <div class="title-section">
@@ -152,9 +156,20 @@ export default function LabelMapArsip() {
             box-sizing: border-box;
             padding: 10mm 5mm;
           }
-          .header-section {
+          .kop-container {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 5px;
+          }
+          .kop-logo {
+            height: 75px;
+            object-fit: contain;
+          }
+          .kop-text {
             text-align: center;
-            margin-bottom: 5mm;
           }
           .gov-text {
             font-size: 16pt;
@@ -167,13 +182,20 @@ export default function LabelMapArsip() {
             font-weight: bold;
             letter-spacing: 1px;
           }
-          .logo-section {
+          .kop-line {
+            width: 100%;
+            border-top: 3px solid #000;
+            border-bottom: 1px solid #000;
+            height: 2px;
             margin-bottom: 8mm;
+          }
+          .logo-section {
+            margin-bottom: 6mm;
             display: flex;
             justify-content: center;
           }
           .logo-img {
-            height: 90px;
+            height: 100px;
             object-fit: contain;
           }
           .title-section {
