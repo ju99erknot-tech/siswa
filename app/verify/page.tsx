@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import {
@@ -26,6 +26,41 @@ export default function VerifyPage() {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<Siswa | null>(null)
   const [notFound, setNotFound] = useState(false)
+
+  useEffect(() => {
+    async function autoVerify() {
+      if (typeof window !== 'undefined') {
+        const urlParams = new URLSearchParams(window.location.search);
+        const queryNisn = urlParams.get('nisn');
+        if (queryNisn) {
+          const cleanNisn = queryNisn.replace(/\D/g, '');
+          setNisn(cleanNisn);
+          setLoading(true);
+          setNotFound(false);
+          setResult(null);
+
+          try {
+            const { data, error } = await supabase
+              .from('siswa')
+              .select('nama, nisn, jk, kelas, tempat_lahir, tanggal_lahir, foto_url')
+              .eq('nisn', cleanNisn.trim())
+              .single();
+
+            if (data && !error) {
+              setResult(data as Siswa);
+            } else {
+              setNotFound(true);
+            }
+          } catch {
+            setNotFound(true);
+          } finally {
+            setLoading(false);
+          }
+        }
+      }
+    }
+    autoVerify();
+  }, []);
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault()

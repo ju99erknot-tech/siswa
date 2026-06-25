@@ -28,6 +28,7 @@ export default function LabelMapArsip() {
   const [teleponFooter, setTeleponFooter] = useState("telepon 0266 532253 faksimile 0266 532253");
   const [websiteFooter, setWebsiteFooter] = useState("https://www.sdn02cibadak.sch.id");
   const [emailFooter, setEmailFooter] = useState("info@sdn02cibadak.sch.id");
+  const [showQrCode, setShowQrCode] = useState(true);
 
   const handlePrint = () => {
     if (filteredSiswa.length === 0) return;
@@ -101,10 +102,20 @@ export default function LabelMapArsip() {
               </div>
               
               <div class="footer-section">
-                <div class="footer-text address">${alamatFooter}</div>
-                <div class="footer-text contact">${teleponFooter}</div>
-                <div class="footer-text web-mail">
-                  laman : <span class="underline">${websiteFooter}</span> &nbsp;&bull;&nbsp; pos-el : <span class="underline">${emailFooter}</span>
+                <div class="footer-body ${showQrCode ? 'has-qr' : ''}">
+                  <div class="footer-text-block">
+                    <div class="footer-text address">${alamatFooter}</div>
+                    <div class="footer-text contact">${teleponFooter}</div>
+                    <div class="footer-text web-mail">
+                      laman : <span class="underline">${websiteFooter}</span> &nbsp;&bull;&nbsp; pos-el : <span class="underline">${emailFooter}</span>
+                    </div>
+                  </div>
+                  ${showQrCode && s.nisn ? `
+                    <div class="qr-container">
+                      <img class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=70x70&data=${encodeURIComponent(window.location.origin + '/verify?nisn=' + s.nisn)}" alt="QR Code" />
+                      <div class="qr-label">IMBAS UNTUK VERIFIKASI</div>
+                    </div>
+                  ` : ""}
                 </div>
                 <div class="year-section">${tahunPelajaran}</div>
               </div>
@@ -233,9 +244,49 @@ export default function LabelMapArsip() {
           }
           .footer-section {
             width: 100%;
-            text-align: center;
             font-size: 11pt;
             line-height: 1.5;
+          }
+          .footer-body {
+            width: 100%;
+            text-align: center;
+          }
+          .footer-body.has-qr {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            text-align: left;
+            padding: 0 10mm;
+            box-sizing: border-box;
+          }
+          .footer-body.has-qr .footer-text-block {
+            flex-grow: 1;
+          }
+          .qr-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-left: 15px;
+            border: 1px solid #ccc;
+            padding: 6px;
+            background: #fff;
+            border-radius: 4px;
+            flex-shrink: 0;
+          }
+          .qr-img {
+            width: 70px;
+            height: 70px;
+            object-fit: contain;
+          }
+          .qr-label {
+            font-size: 6pt;
+            font-weight: bold;
+            margin-top: 4px;
+            color: #555;
+            letter-spacing: 0.5px;
+            font-family: Arial, sans-serif;
+            text-align: center;
           }
           .footer-text {
             margin-bottom: 2px;
@@ -493,7 +544,7 @@ export default function LabelMapArsip() {
         </h2>
 
         <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
                 Tahun Pelajaran / Tahun
@@ -508,18 +559,32 @@ export default function LabelMapArsip() {
             </div>
 
             {layoutMode === "ijazah" && (
-              <div>
-                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
-                  Judul Label Dokumen
-                </label>
-                <input
-                  type="text"
-                  value={judulDokumen}
-                  onChange={(e) => setJudulDokumen(e.target.value)}
-                  placeholder="Contoh: IJAZAH"
-                  className="input-obsidian"
-                />
-              </div>
+              <>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
+                    Judul Label Dokumen
+                  </label>
+                  <input
+                    type="text"
+                    value={judulDokumen}
+                    onChange={(e) => setJudulDokumen(e.target.value)}
+                    placeholder="Contoh: IJAZAH"
+                    className="input-obsidian"
+                  />
+                </div>
+
+                <div className="flex items-center pt-6">
+                  <label className="flex items-center gap-2.5 cursor-pointer select-none text-slate-300 hover:text-white transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={showQrCode}
+                      onChange={(e) => setShowQrCode(e.target.checked)}
+                      className="checkbox-cyan"
+                    />
+                    <span className="text-xs font-bold uppercase tracking-wider">Tampilkan QR Code Verifikasi</span>
+                  </label>
+                </div>
+              </>
             )}
           </div>
 
