@@ -48,13 +48,17 @@ export default function LabelMapArsip() {
         if (layoutMode === "ijazah") {
           return `
             <div class="page-container">
+              <div class="top-logo-section">
+                <img class="top-logo-img" src="/Lambang_Kab_Sukabumi.svg" alt="Lambang Kabupaten Sukabumi" />
+              </div>
+              
               <div class="header-section">
                 <div class="gov-text">PEMERINTAH KABUPATEN SUKABUMI</div>
                 <div class="school-text">SD NEGERI 02 CIBADAK</div>
               </div>
               
-              <div class="logo-section">
-                <img class="logo-img" src="/Lambang_Kab_Sukabumi.svg" alt="Lambang Kabupaten Sukabumi" />
+              <div class="school-logo-section">
+                <img class="school-logo-img" src="${config.logoUrl}" alt="Logo Sekolah" />
               </div>
               
               <div class="title-section">
@@ -152,9 +156,18 @@ export default function LabelMapArsip() {
             box-sizing: border-box;
             padding: 10mm 5mm;
           }
+          .top-logo-section {
+            margin-bottom: 2mm;
+            display: flex;
+            justify-content: center;
+          }
+          .top-logo-img {
+            height: 60px;
+            object-fit: contain;
+          }
           .header-section {
             text-align: center;
-            margin-bottom: 8mm;
+            margin-bottom: 6mm;
           }
           .gov-text {
             font-size: 16pt;
@@ -167,12 +180,12 @@ export default function LabelMapArsip() {
             font-weight: bold;
             letter-spacing: 1px;
           }
-          .logo-section {
-            margin-bottom: 8mm;
+          .school-logo-section {
+            margin-bottom: 6mm;
             display: flex;
             justify-content: center;
           }
-          .logo-img {
+          .school-logo-img {
             height: 90px;
             object-fit: contain;
           }
