@@ -113,7 +113,6 @@ export default function LabelMapArsip() {
               ${showQrCode && s.nisn ? `
                 <div class="qr-container">
                   <img class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=70x70&data=${encodeURIComponent(window.location.origin + '/verify?nisn=' + s.nisn)}" alt="QR Code" />
-                  <div class="qr-label">IMBAS UNTUK VERIFIKASI</div>
                 </div>
               ` : ""}
             </div>
@@ -248,30 +247,16 @@ export default function LabelMapArsip() {
           }
           .qr-container {
             position: absolute;
-            bottom: 12mm;
+            bottom: 5mm;
             right: 12mm;
             display: flex;
-            flex-direction: column;
-            align-items: center;
             justify-content: center;
-            border: 1px solid #ccc;
-            padding: 6px;
-            background: #fff;
-            border-radius: 4px;
+            align-items: center;
           }
           .qr-img {
             width: 70px;
             height: 70px;
             object-fit: contain;
-          }
-          .qr-label {
-            font-size: 6pt;
-            font-weight: bold;
-            margin-top: 4px;
-            color: #555;
-            letter-spacing: 0.5px;
-            font-family: Arial, sans-serif;
-            text-align: center;
           }
           .footer-text {
             margin-bottom: 2px;
