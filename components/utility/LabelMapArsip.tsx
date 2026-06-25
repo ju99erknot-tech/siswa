@@ -102,23 +102,20 @@ export default function LabelMapArsip() {
               </div>
               
               <div class="footer-section">
-                <div class="footer-body ${showQrCode ? 'has-qr' : ''}">
-                  <div class="footer-text-block">
-                    <div class="footer-text address">${alamatFooter}</div>
-                    <div class="footer-text contact">${teleponFooter}</div>
-                    <div class="footer-text web-mail">
-                      laman : <span class="underline">${websiteFooter}</span> &nbsp;&bull;&nbsp; pos-el : <span class="underline">${emailFooter}</span>
-                    </div>
-                  </div>
-                  ${showQrCode && s.nisn ? `
-                    <div class="qr-container">
-                      <img class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=70x70&data=${encodeURIComponent(window.location.origin + '/verify?nisn=' + s.nisn)}" alt="QR Code" />
-                      <div class="qr-label">IMBAS UNTUK VERIFIKASI</div>
-                    </div>
-                  ` : ""}
+                <div class="footer-text address">${alamatFooter}</div>
+                <div class="footer-text contact">${teleponFooter}</div>
+                <div class="footer-text web-mail">
+                  laman : <span class="underline">${websiteFooter}</span> &nbsp;&bull;&nbsp; pos-el : <span class="underline">${emailFooter}</span>
                 </div>
                 <div class="year-section">${tahunPelajaran}</div>
               </div>
+              
+              ${showQrCode && s.nisn ? `
+                <div class="qr-container">
+                  <img class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=70x70&data=${encodeURIComponent(window.location.origin + '/verify?nisn=' + s.nisn)}" alt="QR Code" />
+                  <div class="qr-label">IMBAS UNTUK VERIFIKASI</div>
+                </div>
+              ` : ""}
             </div>
           `;
         }
@@ -165,6 +162,7 @@ export default function LabelMapArsip() {
             page-break-after: always;
             box-sizing: border-box;
             padding: 10mm 5mm;
+            position: relative;
           }
           .top-logo-section {
             margin-bottom: 2mm;
@@ -244,35 +242,22 @@ export default function LabelMapArsip() {
           }
           .footer-section {
             width: 100%;
+            text-align: center;
             font-size: 11pt;
             line-height: 1.5;
           }
-          .footer-body {
-            width: 100%;
-            text-align: center;
-          }
-          .footer-body.has-qr {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            text-align: left;
-            padding: 0 10mm;
-            box-sizing: border-box;
-          }
-          .footer-body.has-qr .footer-text-block {
-            flex-grow: 1;
-          }
           .qr-container {
+            position: absolute;
+            bottom: 12mm;
+            right: 12mm;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            margin-left: 15px;
             border: 1px solid #ccc;
             padding: 6px;
             background: #fff;
             border-radius: 4px;
-            flex-shrink: 0;
           }
           .qr-img {
             width: 70px;
